@@ -68,7 +68,7 @@ const App = () => {
   return (
     <NavigationContainer>
       <DrawerNav.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
-        <DrawerNav.Screen name="Home">
+        <DrawerNav.Screen name="Recogn">
           {() => (
             <View style={{ flex: 1 }}>
               <BottomNavigation

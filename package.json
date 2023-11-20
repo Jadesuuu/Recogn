@@ -25,7 +25,8 @@
     "react-native-safe-area-view": "^1.1.1",
     "react-native-screens": "^3.27.0",
     "react-native-useappstate": "^1.0.4",
-    "expo-camera": "~13.4.4"
+    "expo-camera": "~13.4.4",
+    "expo-media-library": "~15.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
