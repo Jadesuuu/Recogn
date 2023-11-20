@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { BottomNavigation, Text, useTheme, Drawer, Switch } from 'react-native-paper'
 import { View, StyleSheet } from 'react-native'
-import CameraScreen from '../pages/Camera'
+import CameraScreen from '../components/CameraComponent'
 import HistoryScreen from '../pages/History'
 import SettingsScreen from '../pages/Settings'
 import { createDrawerNavigator } from '@react-navigation/drawer'
