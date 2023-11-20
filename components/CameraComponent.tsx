@@ -167,14 +167,16 @@ import { Dimensions } from 'react-native'
   },
   rectangle: {
       overflow: 'hidden',
-      borderLeftColor: 'rgba(0, 0, 0, .8)',
-      borderRightColor: 'rgba(0, 0, 0, .8)',
-      borderTopColor: 'rgba(0, 0, 0, .8)',
-      borderBottomColor: 'rgba(0, 0, 0, .8)',
+      borderLeftColor: 'rgba(0, 0, 0, .5)',
+      borderRightColor: 'rgba(0, 0, 0, .5)',
+      borderTopColor: 'rgba(0, 0, 0, .5)',
+      borderBottomColor: 'rgba(0, 0, 0, .5)',
       borderLeftWidth: deviceWidth / 1,
       borderRightWidth: deviceWidth / 1,
       borderTopWidth: deviceHeight / 1,
-      borderBottomWidth: deviceHeight / 1
+      borderBottomWidth: deviceHeight / 1,
+      borderRadius: 5
+    
   },
   rectangleColor: {
       height: 335,
@@ -184,8 +186,8 @@ import { Dimensions } from 'react-native'
   topLeft: {
       width: 50,
       height: 50,
-      borderTopWidth: 2,
-      borderLeftWidth: 2,
+      borderTopWidth: 4,
+      borderLeftWidth: 4,
       position: 'absolute',
       left: -1,
       top: -1,
@@ -195,8 +197,8 @@ import { Dimensions } from 'react-native'
   topRight: {
       width: 50,
       height: 50,
-      borderTopWidth: 2,
-      borderRightWidth: 2,
+      borderTopWidth: 4,
+      borderRightWidth: 4,
       position: 'absolute',
       right: -1,
       top: -1,
@@ -206,8 +208,8 @@ import { Dimensions } from 'react-native'
   bottomLeft: {
       width: 50,
       height: 50,
-      borderBottomWidth: 2,
-      borderLeftWidth: 2,
+      borderBottomWidth: 4,
+      borderLeftWidth: 4,
       position: 'absolute',
       left: -1,
       bottom: -1,
@@ -217,8 +219,8 @@ import { Dimensions } from 'react-native'
   bottomRight: {
       width: 50,
       height: 50,
-      borderBottomWidth: 2,
-      borderRightWidth: 2,
+      borderBottomWidth: 4,
+      borderRightWidth: 4,
       position: 'absolute',
       right: -1,
       bottom: -1,
