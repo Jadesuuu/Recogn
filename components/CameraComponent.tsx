@@ -5,22 +5,22 @@
   import { IconButton, Divider, Button } from 'react-native-paper'
   import * as MediaLibrary from 'expo-media-library'
   import { ActivityIndicator, MD2Colors } from 'react-native-paper'
-import { Dimensions } from 'react-native'
+  import Overlay from '../components/CameraOverlay'
+  import NoCameraAvailable from '../components/NoCameraDevice'
+  import UnableToSaveImage from './UnableToSaveImage'
 
   export default function CameraComponent() {
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
-    const [flashMode, setFlashMode] = useState(FlashMode.off)    
+    const [flashMode, setFlashMode] = useState(FlashMode.off)  
+    const [permissionResponse, requestPermissionAsync] = MediaLibrary.usePermissions()  
     const cameraRef = useRef<Camera>(null)
 
-
     if (!permission) {
-      // Camera permissions are still loading
       return <ActivityIndicator animating={true} color={MD2Colors.purple100} size={'large'}/>
     }
 
     if (!permission.granted) {
-      // Camera permissions are not granted yet
       return (
         <>
         <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 200 }}>
@@ -39,7 +39,6 @@ import { Dimensions } from 'react-native'
             Grant Permission
         </Button>
       </>
-      
       )
     }
 
@@ -48,7 +47,7 @@ import { Dimensions } from 'react-native'
     }
 
     function toggleFlashMode() {
-      setFlashMode((prevMode) => prevMode === FlashMode.off ? FlashMode.on : FlashMode.off
+      setFlashMode((prevMode) => prevMode === FlashMode.off ? FlashMode.torch : FlashMode.off
       )
     }
 
@@ -57,35 +56,29 @@ import { Dimensions } from 'react-native'
     }
 
     const captureAndSaveImage = async () => {
+      console.log("test")
       if (cameraRef.current) {
         try {
           const { uri } = await cameraRef.current.takePictureAsync()
           const asset = await MediaLibrary.createAssetAsync(uri)
-  
-          const album = await MediaLibrary.getAlbumAsync('Recogn')
-  
-          await MediaLibrary.addAssetsToAlbumAsync([asset], album)
-          console.log('Image saved to gallery');
+          const separatePermission = await requestPermissionAsync()
+
+          if (permissionResponse?.accessPrivileges === "all" || separatePermission.accessPrivileges === "all") {
+            const album = await MediaLibrary.getAlbumAsync('Recogn')
+            await MediaLibrary.addAssetsToAlbumAsync([asset], album)
+          }  
+          console.log('Image saved to gallery')
         } catch (error) {
-          console.error('Error capturing and saving image:', error)
+          <UnableToSaveImage />
         }
       }
     }
 
-    
-
-    
     return (
       <View style={styles.container}>
-        <Camera style={styles.camera} type={type} flashMode={flashMode}>
+        <Camera ref={cameraRef} style={styles.camera} type={type} flashMode={flashMode} autoFocus={true}>
           <View style={styles.rectangleContainer}>
-            <View style={styles.rectangle}>
-            <View style={styles.rectangleColor} />
-            <View style={styles.topLeft} />
-            <View style={styles.topRight} />
-            <View style={styles.bottomLeft} />
-            <View style={styles.bottomRight} />
-            </View>
+            <Overlay />
             <IconButton onPress={captureAndSaveImage} icon='circle-slice-8' style={styles.shutterButton} iconColor='white' size={80} />
             <IconButton onPress={toggleFlashMode} icon='flash' style={styles.flash} iconColor='white' size={40} />
             <IconButton onPress={openGallery} icon='folder-image' style={styles.folderImage} iconColor='white' size={40} />
@@ -97,10 +90,6 @@ import { Dimensions } from 'react-native'
       </View>
     )
   }
-
-  const deviceHeight = Dimensions.get("window").height
-
-  const deviceWidth = Dimensions.get("window").width
 
   const styles = StyleSheet.create({
     container: {
@@ -165,66 +154,4 @@ import { Dimensions } from 'react-native'
       justifyContent: 'center',
       backgroundColor: 'transparent',
   },
-  rectangle: {
-      overflow: 'hidden',
-      borderLeftColor: 'rgba(0, 0, 0, .5)',
-      borderRightColor: 'rgba(0, 0, 0, .5)',
-      borderTopColor: 'rgba(0, 0, 0, .5)',
-      borderBottomColor: 'rgba(0, 0, 0, .5)',
-      borderLeftWidth: deviceWidth / 1,
-      borderRightWidth: deviceWidth / 1,
-      borderTopWidth: deviceHeight / 1,
-      borderBottomWidth: deviceHeight / 1,
-      borderRadius: 5
-    
-  },
-  rectangleColor: {
-      height: 335,
-      width: 335,
-      backgroundColor: 'transparent'
-  },
-  topLeft: {
-      width: 50,
-      height: 50,
-      borderTopWidth: 4,
-      borderLeftWidth: 4,
-      position: 'absolute',
-      left: -1,
-      top: -1,
-      borderLeftColor: 'white',
-      borderTopColor: 'white'
-  },
-  topRight: {
-      width: 50,
-      height: 50,
-      borderTopWidth: 4,
-      borderRightWidth: 4,
-      position: 'absolute',
-      right: -1,
-      top: -1,
-      borderRightColor: 'white',
-      borderTopColor: 'white'
-  },
-  bottomLeft: {
-      width: 50,
-      height: 50,
-      borderBottomWidth: 4,
-      borderLeftWidth: 4,
-      position: 'absolute',
-      left: -1,
-      bottom: -1,
-      borderLeftColor: 'white',
-      borderBottomColor: 'white'
-  },
-  bottomRight: {
-      width: 50,
-      height: 50,
-      borderBottomWidth: 4,
-      borderRightWidth: 4,
-      position: 'absolute',
-      right: -1,
-      bottom: -1,
-      borderRightColor: 'white',
-      borderBottomColor: 'white'
-  }
   })

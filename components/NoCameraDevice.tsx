@@ -2,7 +2,7 @@ import * as React from 'react';
 import { StyleSheet } from 'react-native';
 import { Dialog, Portal, Text } from 'react-native-paper';
 
-const MyComponent = () => {
+const NoCameraDevice = () => {
   const [visible, setVisible] = React.useState(false);
 
   const hideDialog = () => setVisible(false);
@@ -26,4 +26,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default MyComponent;
+export default NoCameraDevice
