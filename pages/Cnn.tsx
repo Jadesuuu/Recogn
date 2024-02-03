@@ -2,14 +2,11 @@ import React, { createContext, useState, useContext } from 'react'
 import * as DocumentPicker from 'expo-document-picker'
 import { View, StyleSheet } from 'react-native'
 import { Button } from 'react-native-paper'
-
-const ModelContext = createContext({})
+import useStore from '../zustand/store'
 
 const Cnn = () => {
-  const [modelPath, setModelPath] = useState('')
-  const [labelPath, setLabelPath] = useState('')
+  const { setModelPath, setLabelPath } = useStore()
   
-
   const pickTFLiteModel = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -46,12 +43,6 @@ const Cnn = () => {
     }
   }
 
-  const lockIn = () => {
-    if (modelPath && labelPath) {
-      setModelPath(modelPath)
-      setLabelPath(labelPath)
-    }
-  }
 
   return (
       <View style={styles.container}>
@@ -60,9 +51,6 @@ const Cnn = () => {
       </Button>
       <Button icon="file-upload" mode="outlined" onPress={pickTFLiteLabel} style={styles.button}>
         Import CNN Model Label
-      </Button>
-      <Button icon="lock" mode="outlined" onPress={lockIn} style={styles.button}>
-        Lock In
       </Button>
     </View>
   )
@@ -84,4 +72,3 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   }
 })
-export { ModelContext }

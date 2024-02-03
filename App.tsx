@@ -5,7 +5,6 @@ import { darkTheme } from './themes/darkTheme'
 import { AppRegistry, useColorScheme } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import HomePage from './routes/HomePage'
-import { ModelContext } from './pages/Cnn'
 
 export default function App() {
 
@@ -17,9 +16,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
-        <ModelContext.Provider value={{ modelPath, labelPath, setModelPath, setLabelPath }}>
           <HomePage />
-        </ModelContext.Provider>
       </PaperProvider>
     </SafeAreaProvider>
   )

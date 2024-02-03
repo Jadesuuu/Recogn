@@ -10,16 +10,14 @@
   import OutputPage from './Output'
   import * as tf from '@tensorflow/tfjs'
   import ActivityIndicator from '../components/ActivityIndicator'
-  import { ModelContext } from '../pages/Cnn'
-
 
   interface CameraComponentProps {
     modelPath: string
     labelPath: string
   }
 
-  const CameraComponent: React.FC<CameraComponentProps> = () => {
-    const { modelPath, labelPath } = useContext(ModelContext) as CameraComponentProps
+  const CameraComponent: React.FC<CameraComponentProps> = ({modelPath, labelPath}) => {
+  
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
     const [flashMode, setFlashMode] = useState(FlashMode.off)  

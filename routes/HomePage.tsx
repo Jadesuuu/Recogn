@@ -3,29 +3,16 @@ import { BottomNavigation, Text, useTheme, Drawer, Switch } from 'react-native-p
 import { View, StyleSheet } from 'react-native'
 import CameraScreen from '../components/CameraComponent'
 import HistoryScreen from '../pages/History'
-import CnnScreen, { ModelContext } from '../pages/Cnn'
+import CnnScreen from '../pages/Cnn'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { NavigationContainer } from '@react-navigation/native'
 import { lightTheme } from '../themes/lightTheme'
 import { darkTheme } from '../themes/darkTheme'
 import { Icon } from 'react-native-elements'
+import useStore from '../zustand/store'
 
-interface ModelContext {
-  modelPath: string
-  labelPath: string
-  
-}
-
-const CameraRoute = () => {
-  const { modelPath, labelPath } = React.useContext(ModelContext) as { modelPath: string; labelPath: string }
-  return modelPath && labelPath ? (
-    <CameraScreen modelPath={modelPath} labelPath={labelPath} />
-  ) : (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Please import model and labels first.</Text>
-    </View>
-  )
-}
+const { modelPath, labelPath } = useStore()
+const CameraRoute = () => <CameraScreen modelPath={modelPath} labelPath={labelPath} />
 const HistoryRoute = () => <HistoryScreen />
 const SettingsRoute = () => <CnnScreen />
 
