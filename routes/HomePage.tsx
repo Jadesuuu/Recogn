@@ -12,7 +12,18 @@ import { Icon } from 'react-native-elements'
 import useStore from '../zustand/store'
 
 const { modelPath, labelPath } = useStore()
-const CameraRoute = () => <CameraScreen modelPath={modelPath} labelPath={labelPath} />
+const CameraRoute = () => {
+  if (modelPath && labelPath) {
+    return <CameraScreen modelPath={modelPath} labelPath={labelPath} />;
+  } else {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}> 
+      {/* temporary prompt */}
+        <Text>Import the model and label first.</Text> 
+      </View>
+    )
+  }
+}
 const HistoryRoute = () => <HistoryScreen />
 const SettingsRoute = () => <CnnScreen />
 
