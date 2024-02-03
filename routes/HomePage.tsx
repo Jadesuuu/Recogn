@@ -3,16 +3,31 @@ import { BottomNavigation, Text, useTheme, Drawer, Switch } from 'react-native-p
 import { View, StyleSheet } from 'react-native'
 import CameraScreen from '../components/CameraComponent'
 import HistoryScreen from '../pages/History'
-import SettingsScreen from '../pages/Settings'
+import CnnScreen, { ModelContext } from '../pages/Cnn'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { NavigationContainer } from '@react-navigation/native'
 import { lightTheme } from '../themes/lightTheme'
 import { darkTheme } from '../themes/darkTheme'
 import { Icon } from 'react-native-elements'
 
-const CameraRoute = () => <CameraScreen />
+interface ModelContext {
+  modelPath: string
+  labelPath: string
+  
+}
+
+const CameraRoute = () => {
+  const { modelPath, labelPath } = React.useContext(ModelContext) as { modelPath: string; labelPath: string }
+  return modelPath && labelPath ? (
+    <CameraScreen modelPath={modelPath} labelPath={labelPath} />
+  ) : (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Please import model and labels first.</Text>
+    </View>
+  )
+}
 const HistoryRoute = () => <HistoryScreen />
-const SettingsRoute = () => <SettingsScreen />
+const SettingsRoute = () => <CnnScreen />
 
 const DrawerContent = ({ navigation }: { navigation: any }) => {
 
@@ -20,7 +35,7 @@ const DrawerContent = ({ navigation }: { navigation: any }) => {
   const theme = isDarkTheme ? darkTheme : lightTheme
   const [active, setActive] = React.useState('')
   const toggleTheme = () => {
-    setIsDarkTheme(!isDarkTheme);
+    setIsDarkTheme(!isDarkTheme)
   }
   return (
     <View style={styles.container}>
@@ -46,16 +61,16 @@ const DrawerContent = ({ navigation }: { navigation: any }) => {
         </View>
       </Drawer.Section>
     </View>
-  );
-};
+  )
+}
 
 const App = () => {
   
   const [index, setIndex] = React.useState(0)
   const [routes] = React.useState([
-    { key: 'history', title: 'History', focusedIcon: 'history' },
+    { key: 'settings', title: 'Upload CNN', focusedIcon: 'file-upload' },
     { key: 'camera', title: 'Camera', focusedIcon: 'camera', unfocusedIcon: 'camera-off' },
-    { key: 'settings', title: 'Help', focusedIcon: 'help-circle' }
+    { key: 'history', title: 'History', focusedIcon: 'history' }
   ])
 
   const renderScene = BottomNavigation.SceneMap({

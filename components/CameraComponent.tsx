@@ -1,23 +1,35 @@
   import { Camera, CameraType, FlashMode } from 'expo-camera'
-  import React, { useRef, useState, useEffect } from 'react'
+  import React, { useRef, useState, useEffect, useContext } from 'react'
   import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
   import { Icon } from 'react-native-elements'
   import { IconButton, Divider, Button } from 'react-native-paper'
   import * as MediaLibrary from 'expo-media-library'
-  import { ActivityIndicator, MD2Colors } from 'react-native-paper'
   import Overlay from '../components/CameraOverlay'
   import NoCameraAvailable from '../components/NoCameraDevice'
   import UnableToSaveImage from './UnableToSaveImage'
+  import OutputPage from './Output'
+  import * as tf from '@tensorflow/tfjs'
+  import ActivityIndicator from '../components/ActivityIndicator'
+  import { ModelContext } from '../pages/Cnn'
 
-  export default function CameraComponent() {
+
+  interface CameraComponentProps {
+    modelPath: string
+    labelPath: string
+  }
+
+  const CameraComponent: React.FC<CameraComponentProps> = () => {
+    const { modelPath, labelPath } = useContext(ModelContext) as CameraComponentProps
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
     const [flashMode, setFlashMode] = useState(FlashMode.off)  
     const [permissionResponse, requestPermissionAsync] = MediaLibrary.usePermissions()  
     const cameraRef = useRef<Camera>(null)
-
+    const [showModal, setShowModal] = useState(false)
+    const [outputData, setOutputData] = useState<any>(null)
+  
     if (!permission) {
-      return <ActivityIndicator animating={true} color={MD2Colors.purple100} size={'large'}/>
+      return <ActivityIndicator />
     }
 
     if (!permission.granted) {
@@ -56,10 +68,20 @@
     }
 
     const captureAndSaveImage = async () => {
-      console.log("test")
-      if (cameraRef.current) {
+      if (cameraRef.current && modelPath) {
         try {
+          const model = await tf.loadGraphModel(modelPath)
           const { uri } = await cameraRef.current.takePictureAsync()
+          const image = new Image()
+          image.src = uri
+          const preprocessedImage = await tf.browser.fromPixels(image)
+          .reshape([224, 224, 3]) // Input size for MobileNet | other model seems to take 192x192x3, be sure to check later. 
+          .div(255.0)
+
+          const inputTensor = tf.tensor(preprocessedImage.dataSync(), [1, 224, 224, 3])
+      
+          const outputData = await model.predict(inputTensor)
+          
           const asset = await MediaLibrary.createAssetAsync(uri)
           const separatePermission = await requestPermissionAsync()
 
@@ -68,6 +90,9 @@
             await MediaLibrary.addAssetsToAlbumAsync([asset], album)
           }  
           console.log('Image saved to gallery')
+
+          setOutputData(outputData) // Store model output in state
+          setShowModal(true)
         } catch (error) {
           <UnableToSaveImage />
         }
@@ -75,11 +100,13 @@
     }
 
     return (
+      
       <View style={styles.container}>
-        <Camera ref={cameraRef} style={styles.camera} type={type} flashMode={flashMode} autoFocus={true}>
+        <Camera ref={cameraRef} style={styles.camera} type={type} flashMode={flashMode} autoFocus={true} ratio='1:1'>
           <View style={styles.rectangleContainer}>
             <Overlay />
             <IconButton onPress={captureAndSaveImage} icon='circle-slice-8' style={styles.shutterButton} iconColor='white' size={80} />
+            {showModal && <OutputPage outputData={outputData} onClose={() => setShowModal(false)} labelData={labelPath} />}
             <IconButton onPress={toggleFlashMode} icon='flash' style={styles.flash} iconColor='white' size={40} />
             <IconButton onPress={openGallery} icon='folder-image' style={styles.folderImage} iconColor='white' size={40} />
             <View style={styles.buttonContainer}>
@@ -88,6 +115,7 @@
           </View>
         </Camera>
       </View>
+
     )
   }
 
@@ -97,7 +125,8 @@
       justifyContent: 'center',
     },
     camera: {
-      flex: 1,
+      width: 192,
+      height: 192
     },
     buttonContainer: {
       position: 'absolute',
@@ -155,3 +184,6 @@
       backgroundColor: 'transparent',
   },
   })
+
+  export default CameraComponent
+

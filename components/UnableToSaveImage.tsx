@@ -1,11 +1,11 @@
-import * as React from 'react';
-import { StyleSheet } from 'react-native';
-import { Dialog, Portal, Text } from 'react-native-paper';
+import * as React from 'react'
+import { StyleSheet } from 'react-native'
+import { Dialog, Portal, Text } from 'react-native-paper'
 
 const UnableToSaveImage = () => {
-  const [visible, setVisible] = React.useState(false);
+  const [visible, setVisible] = React.useState(false)
 
-  const hideDialog = () => setVisible(false);
+  const hideDialog = () => setVisible(false)
 
   return (
     <Portal>
@@ -17,8 +17,8 @@ const UnableToSaveImage = () => {
         </Dialog.Content>
       </Dialog>
     </Portal>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   title: {

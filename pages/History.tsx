@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { ScrollView } from 'react-native-gesture-handler';
-import { Avatar, IconButton, Card, Text, Button, Searchbar } from 'react-native-paper';
-import { StyleSheet, View, Modal } from 'react-native';
+import * as React from 'react'
+import { ScrollView } from 'react-native-gesture-handler'
+import { Avatar, IconButton, Card, Text, Button, Searchbar } from 'react-native-paper'
+import { StyleSheet, View, Modal } from 'react-native'
 
 // Placeholder for history
 // AsyncStorage will be used for history features using FlatList for performance.
@@ -11,7 +11,7 @@ const cardData = [
   { title: 'Card Title 3', subtitle: 'Subtitle for Card 3' },
   { title: 'Card Title 4', subtitle: 'Subtitle for Card 4' },
   { title: 'Card Title 5', subtitle: 'Subtitle for Card 5' },
-];
+]
 
 export default function History() {
   const [modalVisible, setModalVisible] = React.useState(false)
@@ -72,4 +72,4 @@ const styles = StyleSheet.create({
   },
   searchBar: {
   }
-});
+})

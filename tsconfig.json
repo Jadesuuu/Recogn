@@ -2,6 +2,12 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "jsx": "react",
-    "strict": true
+    "strict": true,
+    "target": "esnext",          // Set the target to esnext
+    "moduleResolution": "node",  // Set module resolution to node
+    "allowJs": true,             // Allow JavaScript files to be mixed with TypeScript files
+    "esModuleInterop": true,      // Enable interoperability between CommonJS and ESModule-style imports
+    "skipLibCheck": true,        // Skip type checking of declaration files
+    "forceConsistentCasingInFileNames": true // Force consistent casing in file names
   }
 }
