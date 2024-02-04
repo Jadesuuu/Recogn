@@ -8,8 +8,10 @@
   import NoCameraAvailable from '../components/NoCameraDevice'
   import UnableToSaveImage from './UnableToSaveImage'
   import OutputPage from './Output'
-  import * as tf from '@tensorflow/tfjs'
+  import * as tf from '@tensorflow/tfjs-core'
+  import * as tflite from '@tensorflow/tfjs-tflite'
   import ActivityIndicator from '../components/ActivityIndicator'
+  
 
   interface CameraComponentProps {
     modelPath: string
@@ -25,7 +27,7 @@
     const cameraRef = useRef<Camera>(null)
     const [showModal, setShowModal] = useState(false)
     const [outputData, setOutputData] = useState<any>(null)
-    const [model, setModel] = useState<tf.GraphModel | null>(null)
+    const [model, setModel] = useState<tflite.TFLiteModel | null>(null)
     const { width, height } = useWindowDimensions() 
     const isModelLoading = useRef(false)
 
@@ -33,8 +35,8 @@
       async function loadModel() {
         isModelLoading.current = true
         try {
-          const loadedModel = await tf.loadGraphModel(modelPath)
-          setModel(loadedModel)
+          const loadModel = await tflite.loadTFLiteModel(modelPath)
+          setModel(loadModel)
         } catch (error) {
           console.error('Error loading model:', error)
         } finally {
@@ -92,13 +94,12 @@
           const image = new Image()
           image.src = uri
           const preprocessedImage = tf.browser.fromPixels(image)
-            .reshape([224, 224, 3]) // Input size for MobileNet | other model seems to take 192x192x3, be sure to check later. 
-            .div(255.0)
+          const input = tf.sub(tf.div(tf.expandDims(preprocessedImage), 127.5), 1)
           
-          const inputTensor = tf.tensor(preprocessedImage.dataSync(), [1, 224, 224, 3])
 
           if (model) {
-            const outputData = model.predict(inputTensor)
+            let outputData = model.predict(input) as tf.Tensor
+            setOutputData(outputData)
           } else {
             <ActivityIndicator />
           }
@@ -110,8 +111,7 @@
             await MediaLibrary.addAssetsToAlbumAsync([asset], album)
           }  
           console.log('Image saved to gallery')
-
-          setOutputData(outputData) // Store model output in state
+ 
           setShowModal(true)
         } catch (error) {
           <UnableToSaveImage />
