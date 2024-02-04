@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    borderRadius: 8, // Adjust rounding for square-ish shape
+    borderRadius: 8, 
     paddingHorizontal: 30,
     paddingVertical: 15,
   }

@@ -11,8 +11,8 @@ import { darkTheme } from '../themes/darkTheme'
 import { Icon } from 'react-native-elements'
 import useStore from '../zustand/store'
 
-const { modelPath, labelPath } = useStore()
 const CameraRoute = () => {
+  const { modelPath, labelPath } = useStore()
   if (modelPath && labelPath) {
     return <CameraScreen modelPath={modelPath} labelPath={labelPath} />;
   } else {

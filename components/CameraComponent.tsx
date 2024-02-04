@@ -1,6 +1,6 @@
   import { Camera, CameraType, FlashMode } from 'expo-camera'
   import React, { useRef, useState, useEffect, useContext } from 'react'
-  import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+  import { StyleSheet, Text, TouchableOpacity, View, Dimensions, useWindowDimensions } from 'react-native'
   import { Icon } from 'react-native-elements'
   import { IconButton, Divider, Button } from 'react-native-paper'
   import * as MediaLibrary from 'expo-media-library'
@@ -25,7 +25,26 @@
     const cameraRef = useRef<Camera>(null)
     const [showModal, setShowModal] = useState(false)
     const [outputData, setOutputData] = useState<any>(null)
+    const [model, setModel] = useState<tf.GraphModel | null>(null)
+    const { width, height } = useWindowDimensions() 
+    const isModelLoading = useRef(false)
+
+    useEffect(() => {
+      async function loadModel() {
+        isModelLoading.current = true
+        try {
+          const loadedModel = await tf.loadGraphModel(modelPath)
+          setModel(loadedModel)
+        } catch (error) {
+          console.error('Error loading model:', error)
+        } finally {
+          isModelLoading.current = false
+        }
+      }
   
+      loadModel()
+    }, [modelPath])
+
     if (!permission) {
       return <ActivityIndicator />
     }
@@ -68,20 +87,23 @@
     const captureAndSaveImage = async () => {
       if (cameraRef.current && modelPath) {
         try {
-          const model = await tf.loadGraphModel(modelPath)
+          console.log("test 1")
           const { uri } = await cameraRef.current.takePictureAsync()
           const image = new Image()
           image.src = uri
-          const preprocessedImage = await tf.browser.fromPixels(image)
-          .reshape([224, 224, 3]) // Input size for MobileNet | other model seems to take 192x192x3, be sure to check later. 
-          .div(255.0)
-
-          const inputTensor = tf.tensor(preprocessedImage.dataSync(), [1, 224, 224, 3])
-      
-          const outputData = await model.predict(inputTensor)
+          const preprocessedImage = tf.browser.fromPixels(image)
+            .reshape([224, 224, 3]) // Input size for MobileNet | other model seems to take 192x192x3, be sure to check later. 
+            .div(255.0)
           
-          const asset = await MediaLibrary.createAssetAsync(uri)
-          const separatePermission = await requestPermissionAsync()
+          const inputTensor = tf.tensor(preprocessedImage.dataSync(), [1, 224, 224, 3])
+
+          if (model) {
+            const outputData = model.predict(inputTensor)
+          } else {
+            <ActivityIndicator />
+          }
+            const asset = await MediaLibrary.createAssetAsync(uri)
+            const separatePermission = await requestPermissionAsync()
 
           if (permissionResponse?.accessPrivileges === "all" || separatePermission.accessPrivileges === "all") {
             const album = await MediaLibrary.getAlbumAsync('Recogn')
@@ -94,13 +116,17 @@
         } catch (error) {
           <UnableToSaveImage />
         }
-      }
+    } else if (isModelLoading.current) {
+      <ActivityIndicator />
+    } else {
+      console.error('Model failed to load.')
+      //TODO: create catch errors
     }
-
+  }
     return (
       
       <View style={styles.container}>
-        <Camera ref={cameraRef} style={styles.camera} type={type} flashMode={flashMode} autoFocus={true} ratio='1:1'>
+        <Camera ref={cameraRef} style={{width, height, paddingBottom: 60, paddingTop: 60}} ratio='16:9' type={type} flashMode={flashMode} autoFocus={true} >
           <View style={styles.rectangleContainer}>
             <Overlay />
             <IconButton onPress={captureAndSaveImage} icon='circle-slice-8' style={styles.shutterButton} iconColor='white' size={80} />
@@ -116,15 +142,13 @@
 
     )
   }
-
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: 'center',
     },
     camera: {
-      width: 192,
-      height: 192
+      alignContent: 'center'
     },
     buttonContainer: {
       position: 'absolute',
