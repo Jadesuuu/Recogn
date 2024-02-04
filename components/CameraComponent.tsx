@@ -8,17 +8,19 @@
   import NoCameraAvailable from '../components/NoCameraDevice'
   import UnableToSaveImage from './UnableToSaveImage'
   import OutputPage from './Output'
-  import * as tf from '@tensorflow/tfjs-core'
-  import * as tflite from '@tensorflow/tfjs-tflite'
+  import * as tf from '@tensorflow/tfjs'
+  import '@tensorflow/tfjs-react-native'
   import ActivityIndicator from '../components/ActivityIndicator'
+import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
   
 
   interface CameraComponentProps {
-    modelPath: string
+    modelJson: any
     labelPath: string
+    modelWeight: any
   }
 
-  const CameraComponent: React.FC<CameraComponentProps> = ({modelPath, labelPath}) => {
+  const CameraComponent: React.FC<CameraComponentProps> = ({modelJson, labelPath, modelWeight}) => {
   
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
@@ -27,7 +29,7 @@
     const cameraRef = useRef<Camera>(null)
     const [showModal, setShowModal] = useState(false)
     const [outputData, setOutputData] = useState<any>(null)
-    const [model, setModel] = useState<tflite.TFLiteModel | null>(null)
+    const [model, setModel] = useState<tf.GraphModel | null>(null)
     const { width, height } = useWindowDimensions() 
     const isModelLoading = useRef(false)
 
@@ -35,8 +37,10 @@
       async function loadModel() {
         isModelLoading.current = true
         try {
-          const loadModel = await tflite.loadTFLiteModel(modelPath)
-          setModel(loadModel)
+          await tf.ready()
+          console.log('tensorflow.js can now be used')
+          const modelLoad = await tf.loadGraphModel(bundleResourceIO(modelJson, modelWeight))
+          setModel(modelLoad)
         } catch (error) {
           console.error('Error loading model:', error)
         } finally {
@@ -45,7 +49,7 @@
       }
   
       loadModel()
-    }, [modelPath])
+    }, [modelJson])
 
     if (!permission) {
       return <ActivityIndicator />
@@ -87,19 +91,19 @@
     }
 
     const captureAndSaveImage = async () => {
-      if (cameraRef.current && modelPath) {
+      if (cameraRef.current && modelJson) {
         try {
-          console.log("test 1")
+          console.log('picture taken')
           const { uri } = await cameraRef.current.takePictureAsync()
           const image = new Image()
-          image.src = uri
           const preprocessedImage = tf.browser.fromPixels(image)
           const input = tf.sub(tf.div(tf.expandDims(preprocessedImage), 127.5), 1)
-          
 
           if (model) {
-            let outputData = model.predict(input) as tf.Tensor
+            console.log('model is ready, predicting input')
+            const outputData = model.predict(input) as tf.Tensor
             setOutputData(outputData)
+            setShowModal(true)
           } else {
             <ActivityIndicator />
           }
@@ -111,8 +115,6 @@
             await MediaLibrary.addAssetsToAlbumAsync([asset], album)
           }  
           console.log('Image saved to gallery')
- 
-          setShowModal(true)
         } catch (error) {
           <UnableToSaveImage />
         }

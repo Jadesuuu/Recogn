@@ -1,17 +1,21 @@
 import { create } from 'zustand'
 
 type StoreState = {
-  modelPath: string;
-  labelPath: string;
-  setModelPath: (modelPath: string) => void
+  modelJson: any
+  labelPath: string
+  modelWeight: string
+  setModelJson: (modelPath: any) => void
   setLabelPath: (labelPath: string) => void
+  setModelWeight: (modelWeight: string) => void
 };
 
 const useStore = create<StoreState>((set) => ({
-  modelPath: '',
+  modelJson: '',
   labelPath: '',
-  setModelPath: (modelPath: string) => set({ modelPath }),
+  modelWeight: '',
+  setModelJson: (modelJson: any) => set({ modelJson }),
   setLabelPath: (labelPath: string) => set({ labelPath }),
+  setModelWeight: (modelWeight: string) => set({ modelWeight })
 }))
 
 export default useStore;

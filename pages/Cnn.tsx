@@ -3,9 +3,10 @@ import * as DocumentPicker from 'expo-document-picker'
 import { View, StyleSheet } from 'react-native'
 import { Button } from 'react-native-paper'
 import useStore from '../zustand/store'
+import * as FileSystem from 'expo-file-system'
 
 const Cnn = () => {
-  const { setModelPath, setLabelPath } = useStore()
+  const { setModelJson, setLabelPath, setModelWeight } = useStore()
   
   const pickTFLiteModel = async () => {
     try {
@@ -16,8 +17,14 @@ const Cnn = () => {
       if (result.canceled) {
         // TODO: Handle user cancellation
       } else {
-        const uriModel = result.assets[0].uri
-        setModelPath(uriModel)
+        const modelJson = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+          encoding: FileSystem.EncodingType.UTF8,
+        })
+        const modelWeights = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+          encoding: FileSystem.EncodingType.Base64
+        })
+        setModelJson(modelJson)
+        setModelWeight(modelWeights)
       }
     } catch (error) {
       console.error(error)

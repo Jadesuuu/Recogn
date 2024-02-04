@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, Image, Button, Modal } from 'react-native'
-import * as tf from '@tensorflow/tfjs-tflite'
+import * as tf from '@tensorflow/tfjs'
+import '@tensorflow/tfjs-react-native'
 import ActivityIndicator from './ActivityIndicator'
 
 function Output({ outputData, onClose, labelData }: { 

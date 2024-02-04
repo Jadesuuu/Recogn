@@ -8,8 +8,6 @@ import HomePage from './routes/HomePage'
 
 export default function App() {
 
-  const [modelPath, setModelPath] = React.useState('')
-  const [labelPath, setLabelPath] = React.useState('')
   const colorScheme = useColorScheme()
   const theme = colorScheme === 'dark' ? darkTheme : lightTheme
   
