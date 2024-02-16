@@ -12,9 +12,9 @@ import { Icon } from 'react-native-elements'
 import useStore from '../zustand/store'
 
 const CameraRoute = () => {
-  const { modelJson, labelPath, modelWeight } = useStore()
-  if (modelJson && labelPath) {
-    return <CameraScreen modelJson={modelJson} labelPath={labelPath} modelWeight={modelWeight} />;
+  const { modelPath, modelWeightPath } = useStore()
+  if (modelPath) {
+    return <CameraScreen modelPath={modelPath} modelWeightPath={modelWeightPath} />;
   } else {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}> 

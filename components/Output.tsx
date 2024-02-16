@@ -4,28 +4,14 @@ import * as tf from '@tensorflow/tfjs'
 import '@tensorflow/tfjs-react-native'
 import ActivityIndicator from './ActivityIndicator'
 
-function Output({ outputData, onClose, labelData }: { 
+function Output({ outputData, onClose }: { 
   outputData: number[]
   onClose: () => void
-  labelData: string
  }) {
   // Expected output shape for MobileNet
   const [label, setLabel] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchLabels = async () => {
-      const loadLabels = await(tf as any).textFile(labelData)  // Load labels from the text file
-      .then((lines: string) => lines.split('\n'))
-      setLabel(loadLabels)
-      setIsLoading(false)
-    }
-    fetchLabels()
-  }, [labelData])
-
-  if (isLoading ) {
-    return <ActivityIndicator /> // Show loading indicator while fetching labels
-  }
 
   const expectedOutputShape = [1, 1001]
 

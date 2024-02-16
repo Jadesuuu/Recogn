@@ -1,8 +1,8 @@
   import { Camera, CameraType, FlashMode } from 'expo-camera'
-  import React, { useRef, useState, useEffect, useContext } from 'react'
-  import { StyleSheet, Text, TouchableOpacity, View, Dimensions, useWindowDimensions } from 'react-native'
+  import React, { useRef, useState, useEffect } from 'react'
+  import { StyleSheet, Text, View, useWindowDimensions } from 'react-native'
   import { Icon } from 'react-native-elements'
-  import { IconButton, Divider, Button } from 'react-native-paper'
+  import { IconButton, Button } from 'react-native-paper'
   import * as MediaLibrary from 'expo-media-library'
   import Overlay from '../components/CameraOverlay'
   import NoCameraAvailable from '../components/NoCameraDevice'
@@ -11,16 +11,16 @@
   import * as tf from '@tensorflow/tfjs'
   import '@tensorflow/tfjs-react-native'
   import ActivityIndicator from '../components/ActivityIndicator'
-import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
-  
+  import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
+  import RNFS from 'react-native-fs'
+
 
   interface CameraComponentProps {
-    modelJson: any
-    labelPath: string
-    modelWeight: any
+    modelPath: string
+    modelWeightPath: string
   }
 
-  const CameraComponent: React.FC<CameraComponentProps> = ({modelJson, labelPath, modelWeight}) => {
+  const CameraComponent: React.FC<CameraComponentProps> = ({modelPath, modelWeightPath}) => {
   
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
@@ -33,13 +33,35 @@ import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
     const { width, height } = useWindowDimensions() 
     const isModelLoading = useRef(false)
 
+    let modelJson = ''
+    let modelWeight = ''
+
     useEffect(() => {
+      
       async function loadModel() {
         isModelLoading.current = true
         try {
           await tf.ready()
-          console.log('tensorflow.js can now be used')
-          const modelLoad = await tf.loadGraphModel(bundleResourceIO(modelJson, modelWeight))
+          await RNFS.readFile(modelPath, 'utf8')
+          .then((modelJsonString) => {
+            modelJson = JSON.parse(modelJsonString)
+          })
+          .catch((error) => {
+            console.error('Error loading modelJson:', error)
+          })
+
+          await RNFS.readFile(modelWeightPath, 'base64')
+          .then((modelWeightString) => {
+            modelWeight = modelWeightString
+          })
+          .catch((error) => {
+            console.error('Error loading modelWeights:', error)
+          })
+
+          const modelJsonUri = require(modelJson)
+          const modelWeightUri = require(modelWeight)
+
+          const modelLoad = await tf.loadGraphModel(bundleResourceIO(modelJsonUri, modelWeightUri))
           setModel(modelLoad)
         } catch (error) {
           console.error('Error loading model:', error)
@@ -49,7 +71,7 @@ import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
       }
   
       loadModel()
-    }, [modelJson])
+    }, [modelPath])
 
     if (!permission) {
       return <ActivityIndicator />
@@ -132,7 +154,7 @@ import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
           <View style={styles.rectangleContainer}>
             <Overlay />
             <IconButton onPress={captureAndSaveImage} icon='circle-slice-8' style={styles.shutterButton} iconColor='white' size={80} />
-            {showModal && <OutputPage outputData={outputData} onClose={() => setShowModal(false)} labelData={labelPath} />}
+            {showModal && <OutputPage outputData={outputData} onClose={() => setShowModal(false)} />}
             <IconButton onPress={toggleFlashMode} icon='flash' style={styles.flash} iconColor='white' size={40} />
             <IconButton onPress={openGallery} icon='folder-image' style={styles.folderImage} iconColor='white' size={40} />
             <View style={styles.buttonContainer}>

@@ -3,12 +3,11 @@ import * as DocumentPicker from 'expo-document-picker'
 import { View, StyleSheet } from 'react-native'
 import { Button } from 'react-native-paper'
 import useStore from '../zustand/store'
-import * as FileSystem from 'expo-file-system'
 
 const Cnn = () => {
-  const { setModelJson, setLabelPath, setModelWeight } = useStore()
+  const { setModelPath, setModelWeightPath } = useStore()
   
-  const pickTFLiteModel = async () => {
+  const pickModelJsonPath = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'application/octet-stream',
@@ -17,14 +16,8 @@ const Cnn = () => {
       if (result.canceled) {
         // TODO: Handle user cancellation
       } else {
-        const modelJson = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-          encoding: FileSystem.EncodingType.UTF8,
-        })
-        const modelWeights = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-          encoding: FileSystem.EncodingType.Base64
-        })
-        setModelJson(modelJson)
-        setModelWeight(modelWeights)
+        const modelPath = result.assets[0].uri
+        setModelPath(modelPath)
       }
     } catch (error) {
       console.error(error)
@@ -32,17 +25,21 @@ const Cnn = () => {
     }
   }
 
-  const pickTFLiteLabel = async () => {
+  const pickModelWeightPath = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'text/plain',
+        type: 'application/octet-stream',
       })
 
       if (result.canceled) {
         // TODO: Handle user cancellation
       } else {
-        const uriLabel = result.assets[0].uri
-        setLabelPath(uriLabel)
+        const uriModelWeight = result.assets[0].uri
+        if(!uriModelWeight.endsWith('.bin')) {
+          console.error("File selected is not .bin")
+        } else {
+          setModelWeightPath(uriModelWeight)
+        }
       }
     } catch (error) {
       console.error(error)
@@ -50,20 +47,17 @@ const Cnn = () => {
     }
   }
 
-
   return (
       <View style={styles.container}>
-      <Button icon="file-upload" mode="outlined" onPress={pickTFLiteModel} style={styles.button}>
+      <Button icon="file-upload" mode="outlined" onPress={pickModelJsonPath} style={styles.button}>
         Import CNN Trained Model
       </Button>
-      <Button icon="file-upload" mode="outlined" onPress={pickTFLiteLabel} style={styles.button}>
+      <Button icon="file-upload" mode="outlined" onPress={pickModelWeightPath} style={styles.button}>
         Import CNN Model Label
       </Button>
     </View>
   )
 }
-
-
 
 export default Cnn
 
