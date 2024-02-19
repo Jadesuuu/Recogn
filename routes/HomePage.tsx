@@ -19,7 +19,7 @@ const CameraRoute = () => {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}> 
       {/* temporary prompt */}
-        <Text>Import the model and label first.</Text> 
+        <Text>Import the model.json and weights.bin first.</Text> 
       </View>
     )
   }

@@ -9,7 +9,6 @@
   import UnableToSaveImage from './UnableToSaveImage'
   import OutputPage from './Output'
   import * as tf from '@tensorflow/tfjs'
-  import '@tensorflow/tfjs-react-native'
   import ActivityIndicator from '../components/ActivityIndicator'
   import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
   import RNFS from 'react-native-fs'
@@ -33,35 +32,36 @@
     const { width, height } = useWindowDimensions() 
     const isModelLoading = useRef(false)
 
-    let modelJson = ''
-    let modelWeight = ''
-
     useEffect(() => {
       
       async function loadModel() {
         isModelLoading.current = true
         try {
           await tf.ready()
-          await RNFS.readFile(modelPath, 'utf8')
-          .then((modelJsonString) => {
-            modelJson = JSON.parse(modelJsonString)
-          })
-          .catch((error) => {
-            console.error('Error loading modelJson:', error)
-          })
+          console.log(modelPath)
+          if(!await RNFS.exists(modelPath)) {
+            console.error('Error: File not found')
+            return
+          }
 
-          await RNFS.readFile(modelWeightPath, 'base64')
-          .then((modelWeightString) => {
-            modelWeight = modelWeightString
-          })
-          .catch((error) => {
-            console.error('Error loading modelWeights:', error)
-          })
+          if(!await RNFS.exists(modelWeightPath)) {
+            console.error('Error: File not found')
+          }
 
-          const modelJsonUri = require(modelJson)
-          const modelWeightUri = require(modelWeight)
+          const model = await RNFS.readFile(modelPath, 'utf8')
+          const parsedModel = JSON.parse(model)
+          const mimeType = (await RNFS.stat(modelWeightPath)) as any
 
-          const modelLoad = await tf.loadGraphModel(bundleResourceIO(modelJsonUri, modelWeightUri))
+          if(mimeType.mimeType !== 'application/octet-stream') {
+            console.error('Error: Unexpected file type')
+          }
+
+          const modelWeightsBuffer = await RNFS.readFile(modelWeightPath, 'base64')
+          const textEncoder = new TextEncoder()
+          const modelWeightsArray = new Uint8Array(textEncoder.encode(modelWeightsBuffer))
+          const weightValues = Array.from(modelWeightsArray)
+          const modelLoad = await tf.loadGraphModel(bundleResourceIO(parsedModel, weightValues))
+          
           setModel(modelLoad)
         } catch (error) {
           console.error('Error loading model:', error)
@@ -70,8 +70,17 @@
         }
       }
   
-      loadModel()
-    }, [modelPath])
+      useEffect(() => {
+        if(modelPath && modelWeightPath) {
+          loadModel()
+        }
+      })
+    }, [modelPath, modelWeightPath])
+
+    function bufferToTypedArray(base64String: string): Uint8Array | Float32Array {
+      const buffer = Buffer.from(base64String, 'base64')
+      return new Uint8Array(buffer)
+    }
 
     if (!permission) {
       return <ActivityIndicator />
@@ -113,7 +122,7 @@
     }
 
     const captureAndSaveImage = async () => {
-      if (cameraRef.current && modelJson) {
+      if (cameraRef.current && modelPath) {
         try {
           console.log('picture taken')
           const { uri } = await cameraRef.current.takePictureAsync()

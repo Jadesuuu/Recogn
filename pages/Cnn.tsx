@@ -10,7 +10,7 @@ const Cnn = () => {
   const pickModelJsonPath = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/octet-stream',
+        type: 'application/json',
       })
 
       if (result.canceled) {
@@ -50,10 +50,10 @@ const Cnn = () => {
   return (
       <View style={styles.container}>
       <Button icon="file-upload" mode="outlined" onPress={pickModelJsonPath} style={styles.button}>
-        Import CNN Trained Model
+        Import "yourModel.json"
       </Button>
       <Button icon="file-upload" mode="outlined" onPress={pickModelWeightPath} style={styles.button}>
-        Import CNN Model Label
+        Import "yourModelWeights.bin"
       </Button>
     </View>
   )
