@@ -11,8 +11,9 @@
   import * as tf from '@tensorflow/tfjs'
   import ActivityIndicator from '../components/ActivityIndicator'
   import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
-  import RNFS from 'react-native-fs'
-
+  import * as FileSystem from 'expo-file-system'
+  import { Buffer } from 'buffer'
+  import Base64 from 'react-native-base64'
 
   interface CameraComponentProps {
     modelPath: string
@@ -38,30 +39,22 @@
         isModelLoading.current = true
         try {
           await tf.ready()
-          console.log(modelPath)
-          if(!await RNFS.exists(modelPath)) {
-            console.error('Error: File not found')
-            return
-          }
 
-          if(!await RNFS.exists(modelWeightPath)) {
-            console.error('Error: File not found')
-          }
-
-          const model = await RNFS.readFile(modelPath, 'utf8')
+          const model = await FileSystem.readAsStringAsync(modelPath, {
+            encoding: FileSystem.EncodingType.UTF8,
+          })
           const parsedModel = JSON.parse(model)
-          const mimeType = (await RNFS.stat(modelWeightPath)) as any
 
-          if(mimeType.mimeType !== 'application/octet-stream') {
-            console.error('Error: Unexpected file type')
-          }
-
-          const modelWeightsBuffer = await RNFS.readFile(modelWeightPath, 'base64')
-          const textEncoder = new TextEncoder()
-          const modelWeightsArray = new Uint8Array(textEncoder.encode(modelWeightsBuffer))
-          const weightValues = Array.from(modelWeightsArray)
-          const modelLoad = await tf.loadGraphModel(bundleResourceIO(parsedModel, weightValues))
-          
+          const modelWeightsBuffer = await FileSystem.readAsStringAsync(
+            modelWeightPath,
+            {
+              encoding: FileSystem.EncodingType.Base64,
+            }
+          )
+          const buffer = Buffer.from(modelWeightsBuffer, 'base64')        
+          const numberArray = Array.from(new Uint8Array(buffer)) 
+          const modelLoad = await tf.loadGraphModel(bundleResourceIO(parsedModel, numberArray))
+        
           setModel(modelLoad)
         } catch (error) {
           console.error('Error loading model:', error)
@@ -70,17 +63,8 @@
         }
       }
   
-      useEffect(() => {
-        if(modelPath && modelWeightPath) {
-          loadModel()
-        }
-      })
+      loadModel()
     }, [modelPath, modelWeightPath])
-
-    function bufferToTypedArray(base64String: string): Uint8Array | Float32Array {
-      const buffer = Buffer.from(base64String, 'base64')
-      return new Uint8Array(buffer)
-    }
 
     if (!permission) {
       return <ActivityIndicator />
