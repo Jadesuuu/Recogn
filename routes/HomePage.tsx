@@ -13,8 +13,8 @@ import useStore from '../zustand/store'
 
 const CameraRoute = () => {
   const { modelPath, modelWeightPath } = useStore()
-  if (modelPath) {
-    return <CameraScreen modelPath={modelPath} modelWeightPath={modelWeightPath} />;
+  if (modelPath && modelWeightPath) {
+    return <CameraScreen/>
   } else {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}> 

@@ -1,46 +1,60 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, Image, Button, Modal } from 'react-native'
-import * as tf from '@tensorflow/tfjs'
-import '@tensorflow/tfjs-react-native'
-import ActivityIndicator from './ActivityIndicator'
+import {
+  Modal,
+  View,
+  Text,
+  Button,
+  StyleSheet,
+} from 'react-native'
 
-function Output({ outputData, onClose }: { 
-  outputData: number[]
+interface OutputPageProps {
+  outputData: any
   onClose: () => void
- }) {
-  // Expected output shape for MobileNet
-  const [label, setLabel] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+}
 
+const OutputPage: React.FC<OutputPageProps> = ({ outputData, onClose }) => {
+  const [topPredictions, setTopPredictions] = useState<string[]>([])
 
-  const expectedOutputShape = [1, 1001]
-
-  // Verify and process output data (TODO: handle errors appropriately) 
-  if (!outputData || outputData.length !== expectedOutputShape[0] * expectedOutputShape[1]) {
-    console.error('Invalid output data shape')
-    return <Text>Error: Invalid output data.</Text>
-  }
-
-  // Extract top 3 predictions
-  const top3Predictions = outputData
-    .map((score, index) => ({ score, index }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map(prediction => `${label[prediction.index]}: ${prediction.score.toFixed(3)}`)
+  // Extract and format top 3 predictions (adjust based on prediction format)
+  useEffect(() => {
+    // Example assuming outputData is an array with confidence scores
+    const sortedPredictions = outputData.slice().sort((a: number[], b: number[]) => b[1] - a[1])
+    const formattedPredictions = sortedPredictions
+      .slice(0, 3)
+      .map((prediction: number[]) => `${prediction[0]} (Confidence: ${prediction[1].toFixed(2)})`)
+    setTopPredictions(formattedPredictions)
+  }, [outputData])
 
   return (
-    <Modal visible={true} onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ marginTop: 20 }}>Top 3 Predictions:</Text>
-        <View style={{ flexDirection: 'column' }}>
-          {top3Predictions.map((prediction, index) => (
-            <Text key={index}>{prediction}</Text>
-          ))}
+    <Modal animationType="slide" visible={true} onRequestClose={onClose}>
+      <View style={styles.modalContainer}>
+        <Text style={styles.titleText}>Top Predictions:</Text>
+        {topPredictions.map((prediction, index) => (
+          <Text key={index} style={styles.predictionText}>
+            {prediction}
+          </Text>
+        ))}
+        <View style={styles.buttonContainer}>
+          <Button title="Close" onPress={onClose} />
         </View>
-        <Button title="Close" onPress={onClose} />
       </View>
     </Modal>
   )
 }
 
-export default Output
+const styles = StyleSheet.create({
+  modalContainer: {
+    // Add styles for modal layout and appearance
+  },
+  titleText: {
+    // Add styles for title text
+  },
+  predictionText: {
+    // Add styles for prediction text
+  },
+  buttonContainer: {
+    // Add styles for button alignment
+  },
+})
+
+export default OutputPage

@@ -1,5 +1,5 @@
   import { Camera, CameraType, FlashMode } from 'expo-camera'
-  import React, { useRef, useState, useEffect } from 'react'
+  import React, { useRef, useState, useEffect, useContext } from 'react'
   import { StyleSheet, Text, View, useWindowDimensions } from 'react-native'
   import { Icon } from 'react-native-elements'
   import { IconButton, Button } from 'react-native-paper'
@@ -7,71 +7,23 @@
   import Overlay from '../components/CameraOverlay'
   import NoCameraAvailable from '../components/NoCameraDevice'
   import UnableToSaveImage from './UnableToSaveImage'
-  import OutputPage from './Output'
   import * as tf from '@tensorflow/tfjs'
-  import ActivityIndicator from '../components/ActivityIndicator'
-  import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
-  import * as FileSystem from 'expo-file-system'
-  import { Buffer } from 'buffer'
+  import LoadModel from './LoadModel'
+  import ActivityIndicator from './ActivityIndicator'
 
-  interface CameraComponentProps {
-    modelPath: string
-    modelWeightPath: string
-  }
 
-  const CameraComponent: React.FC<CameraComponentProps> = ({modelPath, modelWeightPath}) => {
+  const CameraComponent = () => {
   
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
     const [flashMode, setFlashMode] = useState(FlashMode.off)  
     const [permissionResponse, requestPermissionAsync] = MediaLibrary.usePermissions()  
     const cameraRef = useRef<Camera>(null)
-    const [showModal, setShowModal] = useState(false)
-    const [outputData, setOutputData] = useState<any>(null)
-    const [model, setModel] = useState<tf.GraphModel | null>(null)
     const { width, height } = useWindowDimensions() 
-    const isModelLoading = useRef(false)
-
-    useEffect(() => {
-      
-      async function loadModel() {
-        isModelLoading.current = true
-        try {
-          await tf.ready()
-
-          const model = await FileSystem.readAsStringAsync(modelPath, {
-            encoding: FileSystem.EncodingType.UTF8,
-          })
-          const parsedModel = JSON.parse(model)
-
-          const modelWeightsBuffer = await FileSystem.readAsStringAsync(
-            modelWeightPath,
-            {
-              encoding: FileSystem.EncodingType.Base64,
-            }
-          )
-          const buffer = Buffer.from(modelWeightsBuffer, 'base64')        
-          const numberArray = Array.from(new Uint8Array(buffer)) 
-          console.log("numberArray: " + typeof numberArray)
-          console.log("parsedModel" + typeof parsedModel)
-          console.log("Model path: "+modelPath)
-          console.log("Model Weight"+modelWeightPath)
-          const modelLoad = await tf.loadGraphModel(bundleResourceIO(parsedModel, numberArray))
-          
-          setModel(modelLoad)
-        } catch (error) {
-          console.error('Error loading model:', error)
-        } finally {
-          isModelLoading.current = false
-        }
-      }
-  
-      try {
-        loadModel()
-      } catch (error) {
-        console.error('Error loading model')
-      }
-    }, [modelPath && modelWeightPath])
+    const [inputImage, setInputImage] = useState<any>(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [hasError, setHasError] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
 
     if (!permission) {
       return <ActivityIndicator />
@@ -113,22 +65,15 @@
     }
 
     const captureAndSaveImage = async () => {
-      if (cameraRef.current && modelPath) {
+      if (cameraRef.current) {
         try {
-          console.log('picture taken')
           const { uri } = await cameraRef.current.takePictureAsync()
           const image = new Image()
           const preprocessedImage = tf.browser.fromPixels(image)
           const input = tf.sub(tf.div(tf.expandDims(preprocessedImage), 127.5), 1)
+          setInputImage(input)
+          console.log('picture taken')
 
-          if (model) {
-            console.log('model is ready, predicting input')
-            const outputData = model.predict(input) as tf.Tensor
-            setOutputData(outputData)
-            setShowModal(true)
-          } else {
-            <ActivityIndicator />
-          }
             const asset = await MediaLibrary.createAssetAsync(uri)
             const separatePermission = await requestPermissionAsync()
 
@@ -140,27 +85,35 @@
         } catch (error) {
           <UnableToSaveImage />
         }
-    } else if (isModelLoading.current) {
-      <ActivityIndicator />
     } else {
       console.error('Model failed to load image.')
     }
   }
+  
+  const handleLoadingChange = (loadingState: boolean | ((prevState: boolean) => boolean)) => {
+    setIsLoading(loadingState);
+  }
     return (
       
       <View style={styles.container}>
-        <Camera ref={cameraRef} style={{width, height, paddingBottom: 60, paddingTop: 60}} ratio='16:9' type={type} flashMode={flashMode} autoFocus={true} >
-          <View style={styles.rectangleContainer}>
-            <Overlay />
-            <IconButton onPress={captureAndSaveImage} icon='circle-slice-8' style={styles.shutterButton} iconColor='white' size={80} />
-            {showModal && <OutputPage outputData={outputData} onClose={() => setShowModal(false)} />}
-            <IconButton onPress={toggleFlashMode} icon='flash' style={styles.flash} iconColor='white' size={40} />
-            <IconButton onPress={openGallery} icon='folder-image' style={styles.folderImage} iconColor='white' size={40} />
-            <View style={styles.buttonContainer}>
-              <IconButton onPress={toggleCameraType} icon='camera-front' style={styles.flipCam} iconColor='white' size={30} />
+        {isLoading ? (
+          <ActivityIndicator />
+        ) : (
+          <>
+          <Camera ref={cameraRef} style={{width, height, paddingBottom: 60, paddingTop: 60}} ratio='16:9' type={type} flashMode={flashMode} autoFocus={true} >
+            <View style={styles.rectangleContainer}>
+              <Overlay />
+              <IconButton onPress={captureAndSaveImage} icon='circle-slice-8' style={styles.shutterButton} iconColor='white' size={80} />
+              <IconButton onPress={toggleFlashMode} icon='flash' style={styles.flash} iconColor='white' size={40} />
+              <IconButton onPress={openGallery} icon='folder-image' style={styles.folderImage} iconColor='white' size={40} />
+              <View style={styles.buttonContainer}>
+                <IconButton onPress={toggleCameraType} icon='camera-front' style={styles.flipCam} iconColor='white' size={30} />
+              </View>
             </View>
-          </View>
-        </Camera>
+          </Camera>
+          <LoadModel inputImage={inputImage} onLoadingChange={handleLoadingChange}/>
+          </>
+        )}
       </View>
 
     )

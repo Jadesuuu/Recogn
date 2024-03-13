@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { ActivityIndicator, MD2Colors } from 'react-native-paper'
+import { ActivityIndicator } from 'react-native-paper'
 
 const MyComponent = () => (
-  <ActivityIndicator animating={true} color={MD2Colors.red800} />
+  <ActivityIndicator animating={true} size={'large'} />
 );
 
 export default MyComponent
