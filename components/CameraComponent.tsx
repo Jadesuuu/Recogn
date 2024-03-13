@@ -13,7 +13,6 @@
   import { bundleResourceIO } from '@tensorflow/tfjs-react-native'
   import * as FileSystem from 'expo-file-system'
   import { Buffer } from 'buffer'
-  import Base64 from 'react-native-base64'
 
   interface CameraComponentProps {
     modelPath: string
@@ -53,8 +52,12 @@
           )
           const buffer = Buffer.from(modelWeightsBuffer, 'base64')        
           const numberArray = Array.from(new Uint8Array(buffer)) 
+          console.log("numberArray: " + typeof numberArray)
+          console.log("parsedModel" + typeof parsedModel)
+          console.log("Model path: "+modelPath)
+          console.log("Model Weight"+modelWeightPath)
           const modelLoad = await tf.loadGraphModel(bundleResourceIO(parsedModel, numberArray))
-        
+          
           setModel(modelLoad)
         } catch (error) {
           console.error('Error loading model:', error)
@@ -63,8 +66,12 @@
         }
       }
   
-      loadModel()
-    }, [modelPath, modelWeightPath])
+      try {
+        loadModel()
+      } catch (error) {
+        console.error('Error loading model')
+      }
+    }, [modelPath && modelWeightPath])
 
     if (!permission) {
       return <ActivityIndicator />
@@ -136,8 +143,7 @@
     } else if (isModelLoading.current) {
       <ActivityIndicator />
     } else {
-      console.error('Model failed to load.')
-      //TODO: create catch errors
+      console.error('Model failed to load image.')
     }
   }
     return (
