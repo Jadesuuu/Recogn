@@ -1,32 +1,16 @@
 import * as React from 'react'
 import { BottomNavigation, Text, useTheme, Drawer, Switch } from 'react-native-paper'
 import { View, StyleSheet } from 'react-native'
-import CameraScreen from '../components/CameraComponent'
 import HistoryScreen from '../pages/History'
-import CnnScreen from '../pages/Cnn'
+import CameraScreen from '../components/CameraComponent'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { NavigationContainer } from '@react-navigation/native'
 import { lightTheme } from '../themes/lightTheme'
 import { darkTheme } from '../themes/darkTheme'
 import { Icon } from 'react-native-elements'
-import useStore from '../zustand/store'
 
-const CameraRoute = () => {
-  const { modelPath, modelWeightPath } = useStore()
-  if (modelPath && modelWeightPath) {
-    return <CameraScreen/>
-  } else {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}> 
-      {/* temporary prompt */}
-        <Text>Import the model.json and weights.bin first.</Text> 
-      </View>
-    )
-  }
-}
+const CameraRoute = () => <CameraScreen />
 const HistoryRoute = () => <HistoryScreen />
-const SettingsRoute = () => <CnnScreen />
-
 const DrawerContent = ({ navigation }: { navigation: any }) => {
 
   const [isDarkTheme, setIsDarkTheme] = React.useState(false) 
@@ -66,7 +50,6 @@ const App = () => {
   
   const [index, setIndex] = React.useState(0)
   const [routes] = React.useState([
-    { key: 'settings', title: 'Upload CNN', focusedIcon: 'file-upload' },
     { key: 'camera', title: 'Camera', focusedIcon: 'camera', unfocusedIcon: 'camera-off' },
     { key: 'history', title: 'History', focusedIcon: 'history' }
   ])
@@ -74,7 +57,6 @@ const App = () => {
   const renderScene = BottomNavigation.SceneMap({
     camera: CameraRoute,
     history: HistoryRoute,
-    settings: SettingsRoute
   })
   const DrawerNav = createDrawerNavigator();
 
@@ -83,11 +65,13 @@ const App = () => {
       <DrawerNav.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
         <DrawerNav.Screen name="Recogn">
           {() => (
-            <View style={{ flex: 1 }}>
+            <View style={styles.container}>
               <BottomNavigation
                 navigationState={{ index, routes }}
                 onIndexChange={setIndex}
                 renderScene={renderScene}
+                barStyle={{backgroundColor: '#F5F5F5'}}
+                theme={{colors: {secondaryContainer: '#006400'}}}
               />
             </View>
           )}
@@ -101,7 +85,8 @@ export default App
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 30,
+    flex: 1,
+    backgroundColor: 'white'
   },
   drawerItem: {
     justifyContent: 'space-between',

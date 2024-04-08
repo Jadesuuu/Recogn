@@ -3,58 +3,126 @@ import {
   Modal,
   View,
   Text,
+  Image,
   Button,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native'
 
 interface OutputPageProps {
   outputData: any
-  onClose: () => void
+  uri: string
 }
 
-const OutputPage: React.FC<OutputPageProps> = ({ outputData, onClose }) => {
+const OutputPage: React.FC<OutputPageProps> = ({ outputData, uri }) => {
   const [topPredictions, setTopPredictions] = useState<string[]>([])
+  const [modalVisible, setModalVisible] = useState(true)
 
-  // Extract and format top 3 predictions (adjust based on prediction format)
   useEffect(() => {
-    // Example assuming outputData is an array with confidence scores
+
     const sortedPredictions = outputData.slice().sort((a: number[], b: number[]) => b[1] - a[1])
     const formattedPredictions = sortedPredictions
       .slice(0, 3)
-      .map((prediction: number[]) => `${prediction[0]} (Confidence: ${prediction[1].toFixed(2)})`)
+      .map((prediction: number[]) => {
+        const confidence = (prediction[1] * 100).toFixed(0)
+        return `${prediction[0]} ${confidence}%`
+      })
+
     setTopPredictions(formattedPredictions)
   }, [outputData])
 
+  const closeOutputModal = () => {
+    setModalVisible(!modalVisible)
+  }
+
   return (
-    <Modal animationType="slide" visible={true} onRequestClose={onClose}>
-      <View style={styles.modalContainer}>
-        <Text style={styles.titleText}>Top Predictions:</Text>
-        {topPredictions.map((prediction, index) => (
-          <Text key={index} style={styles.predictionText}>
-            {prediction}
-          </Text>
-        ))}
-        <View style={styles.buttonContainer}>
-          <Button title="Close" onPress={onClose} />
+    <View style={styles.outerView}>
+      <Modal
+        animationType="slide"
+        style={styles.modal}
+        visible={modalVisible}
+        transparent={true}
+        onRequestClose={closeOutputModal}
+        onDismiss={closeOutputModal}
+      >
+        <View style={{ height: '65%', marginTop: 'auto', backgroundColor: '#F5F5F5', borderRadius: 35 }}>
+          <View>
+            <View style={styles.imageContainer}>
+              {uri && 
+              <Image source={{ uri }} style={styles.image} />
+              }
+            </View>
+          </View>
+          {topPredictions.map((prediction, index) => (
+            <View key={index}>
+              <Text style={index === 0 ? styles.predictionTextBold : styles.predictionText}>
+                {prediction}
+              </Text>
+              <View style={styles.divider} />
+            </View>
+          ))}
         </View>
-      </View>
-    </Modal>
+      </Modal>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   modalContainer: {
-    // Add styles for modal layout and appearance
+    flex: 1,
+    height: '60%',
+    borderRadius: 35,
   },
-  titleText: {
-    // Add styles for title text
+  outerView: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  closeButton: {
+    fontSize: 24,
+    color: 'gray',
+  },
+  imageContainer: {
+    paddingTop: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  image: {
+    width: 370,
+    height: 370,
+    resizeMode: 'contain',
+    borderRadius: 35,
   },
   predictionText: {
-    // Add styles for prediction text
+    fontSize: 18,
+    marginBottom: 5,
+    color: 'gray',
+    textAlign: 'center',
+  },
+  predictionTextBold: {
+    fontSize: 28,
+    marginBottom: 5,
+    color: 'black',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   buttonContainer: {
-    // Add styles for button alignment
+    marginTop: 20,
   },
+  modal: {
+    height: '50%',
+    paddingTop: 30,
+  },
+  divider: {
+    height: 1.5,
+    backgroundColor: '#F0F0F0'
+  }
 })
 
 export default OutputPage
+
