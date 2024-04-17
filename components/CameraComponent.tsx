@@ -5,7 +5,7 @@
   import { IconButton, Button } from 'react-native-paper'
   import * as MediaLibrary from 'expo-media-library'
   import Overlay from '../components/CameraOverlay'
-  import UnableToSaveImage from './UnableToSaveImage'
+  import SendToServer from './SendToServer'
   import ActivityIndicator from './ActivityIndicator2'
   import * as ImagePicker from 'expo-image-picker';
   import OutputPage from './Output'
@@ -14,12 +14,11 @@
   
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
+    const [isCaptured, setIsCaptured] = useState(false)
     const [imageUri, setImageUri] = useState('')
-    // const [isImageReady, setImageReady] = useState(false)
     const [flashMode, setFlashMode] = useState(FlashMode.off)  
     const [permissionResponse, requestPermissionAsync] = MediaLibrary.usePermissions() 
     const [visible, setVisible] = useState(false); 
-    const [actIndVisible, setActIndVisible] = useState(false)
     const cameraRef = useRef<Camera>(null)
     const { width, height } = useWindowDimensions() 
 
@@ -57,32 +56,6 @@
       setFlashMode((prevMode) => prevMode === FlashMode.off ? FlashMode.torch : FlashMode.off
       )
     }
-
-    const handleCloseModal = () => {
-      setVisible(false); 
-    }
-
-
-    const sendImageToServer = async (capturedImageUri: string) => {
-      setVisible(false)
-      setActIndVisible(true)
-      const response = await fetch(capturedImageUri)
-      const arrayBuffer = await response. arrayBuffer()
-      const blob = new Blob([arrayBuffer], {type: 'image/jpg'})
-      const formData = new FormData();
-      formData.append('image', blob, 'inputImage.jpg')
-      
-      try { 
-        await fetch('server_ni_jerome', {
-          method: 'POST',
-          body: formData
-        })
-        setVisible(false); 
-      } catch (error) {
-        console.error('Error sending image:', error);
-        Alert.alert('Error', 'Failed to send image to server.');
-      }
-    }
     
     const captureAndSaveImage = async () => {
       if (cameraRef.current) {
@@ -96,10 +69,9 @@
             await MediaLibrary.addAssetsToAlbumAsync([asset], album);
           }
           
-          console.log(data.uri)
           setImageUri(data.uri); 
-          // setImageReady(true)
           setVisible(true);
+          setIsCaptured(true)
         } catch (error) {
           console.error('Error capturing or saving image:', error);
         }
@@ -113,11 +85,11 @@
       aspect: [4, 3],
       quality: 1
     });
-
+    setVisible(true) 
+    setIsCaptured(true)
     if (!result.canceled) {
       console.log(result.assets[0].uri)
-      setVisible(true) 
-      console.log(visible) //?????
+      console.log(visible)
       setImageUri(result.assets[0].uri)
     }
   };
@@ -135,20 +107,7 @@
             </View>
           </View>
         </Camera>
-          <Modal visible={visible} onDismiss={handleCloseModal} style={styles.modal} onRequestClose={handleCloseModal} animationType='slide'>
-            <View style={styles.modalContent}>
-              {imageUri && (  
-                <Image source={{uri: imageUri}} style={styles.previewImage} />
-              )}
-              <View style={styles.buttonContainer2}>
-                <Button mode="contained" onPress={() => handleCloseModal()}>Retake</Button>
-                <Button mode="contained" onPress={() => imageUri && sendImageToServer(imageUri)}>Confirm</Button>
-              </View>
-            </View>
-          </Modal>
-        <Modal visible={actIndVisible}>
-          <ActivityIndicator />
-        </Modal>
+        {isCaptured && <SendToServer uri={imageUri} onFinish={() => setIsCaptured(false)}/>}
       </>
     )
   }
