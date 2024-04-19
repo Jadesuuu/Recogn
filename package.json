@@ -35,7 +35,8 @@
     "react-native-useappstate": "^1.0.4",
     "zustand": "^4.5.0",
     "expo-image-picker": "~14.3.2",
-    "expo-asset": "~8.10.1"
+    "expo-asset": "~8.10.1",
+    "expo-image-manipulator": "~11.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

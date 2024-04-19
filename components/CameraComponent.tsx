@@ -8,6 +8,7 @@
   import SendToServer from './SendToServer'
   import ActivityIndicator from './ActivityIndicator2'
   import * as ImagePicker from 'expo-image-picker';
+  import * as ImageManipulator from 'expo-image-manipulator';
   import OutputPage from './Output'
 
   const CameraComponent = () => {
@@ -60,8 +61,20 @@
     const captureAndSaveImage = async () => {
       if (cameraRef.current) {
         try {
-          const data = await cameraRef.current.takePictureAsync();
-          const asset = await MediaLibrary.createAssetAsync(data.uri);
+          const data = await cameraRef.current.takePictureAsync({
+            quality: 1,
+            base64: true,
+          });
+          const manipulateData = await ImageManipulator.manipulateAsync(
+            data.uri,
+            [{ crop: {
+              height: 80, 
+              originX: 0, 
+              originY: 0, 
+              width: 120
+            } }],
+          )
+          const asset = await MediaLibrary.createAssetAsync(manipulateData.uri);
           const separatePermission = await requestPermissionAsync();
     
           if (permissionResponse?.accessPrivileges === "all" || separatePermission.accessPrivileges === "all") {

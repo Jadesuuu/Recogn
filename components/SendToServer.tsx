@@ -9,17 +9,25 @@ import {
 import { Button } from 'react-native-paper'
 import ActivityIndicator from './ActivityIndicator2'
 import OutputPage from './Output'
-import { Asset } from 'expo-asset'
+import axios from 'axios'
 
 interface SendToServerProps {
     uri: string
     onFinish: any
 }
 
+interface ConfidenceScore {
+  label: string; score: string
+}
+
 const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     const [modalVisible, setModalVisible] = useState(true)
     const [actIndVisible, setActIndVisible] = useState(false)
     const [outputVisible, setOutputVisible] = useState(false)
+
+    const initialConfidenceScores: ConfidenceScore[] = [];
+    const [receivedImage, setReceivedImage] = useState('')
+    const [receivedConfidenceScores, setReceivedConfidenceScores] = useState<ConfidenceScore[]>()
 
     const handleFinish = () => {
         
@@ -37,34 +45,61 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
       }
 
     const sendImageToServer = async (uri: RequestInfo) => {
-      console.log("Sending image to server...")
-        const response = await fetch(uri)
-        const arrayBuffer = await response. arrayBuffer()
-        const blob = new Blob([arrayBuffer], {type: 'image/jpg'})
-        const formData = new FormData();
-        formData.append('image', blob, 'inputImage.jpg')
+      const response = await fetch(uri);
+      const blob = await response.blob();
 
-        try { 
-        await fetch('server_ni_jerome', {
-            method: 'POST',
-            body: formData
-        })
-        setModalVisible(false); 
-        setActIndVisible(true)
-        } catch (error) {
-        console.error('Error sending image:', error);
-        Alert.alert('Error', 'Failed to send image to server.');
-        }
+      const formData = new FormData();
+      formData.append('image', blob, 'inputImage.jpg')
+
+      try {
+        const axiosResponse = await axios.post('http://192.168.1.56:5000/predict', formData);
+        console.log(axiosResponse.data); //check
+      } catch (error) {
+        console.log('Error uploading image:', error);
+        Alert.alert(
+          'Failed to send image to server.',
+          'Solutions: \n1. Check if the server link is written correctly \n2. Check your internet connection'
+        );
+      }
+      setActIndVisible(true)
+      fetchImageAndScores()
     }
+
+  const processReceivedData = async (blob: Blob | MediaSource, confidenceScores: [any, any][]) => {
+    //blob to image, then get its uri
+    const imageUrl = URL.createObjectURL(blob);
+    setReceivedImage(imageUrl)
+
+    //blob to confidence score array
+    const convertedConfidenceScores: ((prevState: never[]) => never[]) | { label: any; score: any }[] = []
+    console.log('Confidence scores:')
+    confidenceScores.forEach(([label, score]) => {
+      console.log(`${label}: ${score}`)
+      convertedConfidenceScores.push({label, score})
+    })
+    setReceivedConfidenceScores(convertedConfidenceScores)
+  }
+
+  const fetchImageAndScores = async () => {
+    try {
+      const axiosResponse = await axios.get('http://localhost:5000/upload');
+      const axiosBlob = new Blob([axiosResponse.data], { type: 'image/jpg' }) //assuming blob contains an image
+      const axiosConfidenceScores = axiosResponse.data.confidenceScores;
+
+      console.log(axiosBlob)
+      console.log(axiosConfidenceScores)
+      processReceivedData(axiosBlob, axiosConfidenceScores)
+      setActIndVisible(false)
+      setOutputVisible(true)
+    } catch (error) {
+      console.log('Fetching image and scores error: ',error)
+      setActIndVisible(false)
+    }
+  }
 
   const closeOutputModal = () => {
     setModalVisible(false)
     handleFinish();
-  }
-
-  const openOutput = () => {
-    console.log(imageUri)
-    setOutputVisible(true)
   }
 
   const sampleConfidenceScores = [
@@ -72,7 +107,6 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     ['Eye', '0.11'],
     ['Box', '0.01'],
   ];
-  const imageUri = Asset.fromModule('../assets/icon.png')
 
   return (
     <View style={styles.outerView}>
@@ -96,7 +130,8 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
       </Modal>
       <Modal visible={actIndVisible}>
           <ActivityIndicator />
-        </Modal>
+      </Modal>
+      {outputVisible && <OutputPage outputData={receivedConfidenceScores} uri={receivedImage}/>}
     </View>
   )
 }
