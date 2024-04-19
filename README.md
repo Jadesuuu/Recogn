@@ -15,7 +15,7 @@ Project Overview<br />
 This application allows users to capture images using their mobile device camera. The captured image is then sent to a Flask server for preprocessing and classification. The server returns the preprocessed image and predicted confidence scores for different categories. Finally, the app displays the processed image and confidence scores on the screen.<br />
 
 Technologies Used <br />
-• React Native: https://reactnative.dev/ (JavaScript framework for mobile apps)<br />
+• React Native: https://reactnative.dev/ (TypeScript framework for mobile apps)<br />
 • Expo: https://expo.dev/ (Development platform for React Native apps)<br />
 • Flask (Optional): https://flask.palletsprojects.com/ (Python web framework for backend server)<br />
 
