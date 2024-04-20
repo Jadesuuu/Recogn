@@ -1,6 +1,6 @@
   import { Camera, CameraType, FlashMode } from 'expo-camera'
   import React, { useRef, useState } from 'react'
-  import { Alert, StyleSheet, Text, View, useWindowDimensions, Image, Modal } from 'react-native'
+  import { StyleSheet, Text, View, useWindowDimensions } from 'react-native'
   import { Icon } from 'react-native-elements'
   import { IconButton, Button } from 'react-native-paper'
   import * as MediaLibrary from 'expo-media-library'
@@ -9,7 +9,6 @@
   import ActivityIndicator from './ActivityIndicator2'
   import * as ImagePicker from 'expo-image-picker';
   import * as ImageManipulator from 'expo-image-manipulator';
-  import OutputPage from './Output'
 
   const CameraComponent = () => {
   

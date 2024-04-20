@@ -24,11 +24,9 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     const [modalVisible, setModalVisible] = useState(true)
     const [actIndVisible, setActIndVisible] = useState(false)
     const [outputVisible, setOutputVisible] = useState(false)
-
-    const initialConfidenceScores: ConfidenceScore[] = [];
-    const [receivedImage, setReceivedImage] = useState('')
     const [receivedConfidenceScores, setReceivedConfidenceScores] = useState<ConfidenceScore[]>()
 
+    //call back function for closing the modal. 
     const handleFinish = () => {
         
         if (onFinish) {
@@ -43,7 +41,8 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
           console.warn('Missing Captured image URI')
         }
       }
-
+    
+    //Gets the image uri, convert it to blob and sends to server
     const sendImageToServer = async (uri: RequestInfo) => {
       const response = await fetch(uri);
       const blob = await response.blob();
@@ -52,7 +51,7 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
       formData.append('image', blob, 'inputImage.jpg')
 
       try {
-        const axiosResponse = await axios.post('http://192.168.1.56:5000/predict', formData);
+        const axiosResponse = await axios.post('http://127.0.0.1:5000', formData);
         console.log(axiosResponse.data); //check
       } catch (error) {
         console.log('Error uploading image:', error);
@@ -65,14 +64,12 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
       fetchImageAndScores()
     }
 
-  const processReceivedData = async (blob: Blob | MediaSource, confidenceScores: [any, any][]) => {
-    //blob to image, then get its uri
-    const imageUrl = URL.createObjectURL(blob);
-    setReceivedImage(imageUrl)
-
+  const processReceivedData = async (confidenceScores: [any, any][]) => {
     //blob to confidence score array
     const convertedConfidenceScores: ((prevState: never[]) => never[]) | { label: any; score: any }[] = []
     console.log('Confidence scores:')
+
+    //set the state for the new confidence score data
     confidenceScores.forEach(([label, score]) => {
       console.log(`${label}: ${score}`)
       convertedConfidenceScores.push({label, score})
@@ -80,15 +77,13 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     setReceivedConfidenceScores(convertedConfidenceScores)
   }
 
+  //wait for the server, then fetch the blob containing an image and array of confidence scores
   const fetchImageAndScores = async () => {
     try {
       const axiosResponse = await axios.get('http://localhost:5000/upload');
-      const axiosBlob = new Blob([axiosResponse.data], { type: 'image/jpg' }) //assuming blob contains an image
       const axiosConfidenceScores = axiosResponse.data.confidenceScores;
-
-      console.log(axiosBlob)
-      console.log(axiosConfidenceScores)
-      processReceivedData(axiosBlob, axiosConfidenceScores)
+      console.log(axiosConfidenceScores) //log confidence scores
+      processReceivedData(axiosConfidenceScores) //process the image and confidence scores
       setActIndVisible(false)
       setOutputVisible(true)
     } catch (error) {
@@ -102,6 +97,7 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     handleFinish();
   }
 
+  //for testing
   const sampleConfidenceScores = [
     ['Camera', '0.88'],
     ['Eye', '0.11'],
@@ -131,11 +127,12 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
       <Modal visible={actIndVisible}>
           <ActivityIndicator />
       </Modal>
-      {outputVisible && <OutputPage outputData={receivedConfidenceScores} uri={receivedImage}/>}
+      {outputVisible && <OutputPage outputData={receivedConfidenceScores} uri={uri}/>}
     </View>
   )
 }
 
+//CSS Styles
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
