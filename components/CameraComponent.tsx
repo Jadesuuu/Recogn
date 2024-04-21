@@ -56,22 +56,50 @@
       setFlashMode((prevMode) => prevMode === FlashMode.off ? FlashMode.torch : FlashMode.off
       )
     }
+
+    // const calculateCropDimensions = (imageWidth: number, imageHeight: number) => {
+    //   const originalRatio = imageWidth / imageHeight;
+    //   const desiredRatio = 4 / 3;
+    
+    //   const cropWidth = imageHeight * desiredRatio;
+    
+    //   if (originalRatio > desiredRatio) {
+    //     const cropHeight = imageWidth / desiredRatio;
+    //     return { width: cropWidth, height: cropHeight };
+    //   } else {
+    //     return { width: cropWidth, height: imageHeight };
+    //   }
+    // };
     
     const captureAndSaveImage = async () => {
       if (cameraRef.current) {
         try {
           const data = await cameraRef.current.takePictureAsync({
             quality: 1,
-            base64: true,
+            base64: true
           });
+
+          const {width, height} = data;
+          const desiredRatio = 4 / 4;
+          const cropWidth = Math.min(width, height * desiredRatio)
+          const cropHeight = Math.min(height, width / desiredRatio)
+          const originX = (width - cropWidth) / 2
+          const originY = (height - cropHeight) / 2
+
           const manipulateData = await ImageManipulator.manipulateAsync(
-            data.uri,
-            [{ crop: {
-              height: 80, 
-              originX: 0, 
-              originY: 0, 
-              width: 120
-            } }],
+            data.uri, 
+            [
+              {
+                crop: {
+                  // Calculate crop dimensions based on the original image's aspect ratio
+                  width: data.width,
+                  height: (data.width * 3) / 4,
+                  // Center the crop
+                  originX: originX,
+                  originY: originY
+                }
+              }
+            ]
           )
           const asset = await MediaLibrary.createAssetAsync(manipulateData.uri);
           const separatePermission = await requestPermissionAsync();
@@ -81,7 +109,7 @@
             await MediaLibrary.addAssetsToAlbumAsync([asset], album);
           }
           
-          setImageUri(data.uri); 
+          setImageUri(manipulateData.uri); 
           setVisible(true);
           setIsCaptured(true)
         } catch (error) {
