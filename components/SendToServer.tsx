@@ -11,6 +11,7 @@ import ActivityIndicator from './ActivityIndicator2'
 import OutputPage from './Output'
 import { Platform } from 'react-native'
 import axios from 'axios'
+import * as FileSystem from 'expo-file-system'
 
 interface SendToServerProps {
     uri: string
@@ -48,19 +49,13 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
       setActIndVisible(true);
     
       try {
-        const formData = new FormData();
-    
-        const response = await fetch(uri);
-        const blob = await response.blob();
-    
-        const file = new File([blob], 'inputImage.jpg', { type: 'image/jpeg' });
-    
-        formData.append('image', file);
-    
-        console.log('Sending request to server...');
-        const axiosResponse = await axios.post('https://webhook.site/115b24b7-829f-49d9-8817-0a3ae89ec729', formData, {
+        const base64Data = await FileSystem.readAsStringAsync(uri, {
+          encoding: 'base64'
+        })
+
+        const axiosResponse = await axios.post('https://webhook.site/546d31a3-15d4-4ac1-ae67-74e5a8c08fb2', 'data:image/jpeg;base64,' + base64Data, {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'image/jpeg'
           }
         })
     
