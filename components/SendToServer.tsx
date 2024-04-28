@@ -9,6 +9,7 @@ import {
 import { Button } from 'react-native-paper'
 import ActivityIndicator from './ActivityIndicator2'
 import OutputPage from './Output'
+import { Platform } from 'react-native'
 import axios from 'axios'
 
 interface SendToServerProps {
@@ -36,33 +37,47 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
 
       const handleConfirmButton = async () => {
         if (uri) {
+
           await sendImageToServer(uri)
         } else {
           console.warn('Missing Captured image URI')
         }
       }
     
-    //Gets the image uri, convert it to blob and sends to server
-    const sendImageToServer = async (uri: RequestInfo) => {
-      const response = await fetch(uri);
-      const blob = await response.blob();
-
-      const formData = new FormData();
-      formData.append('image', blob, 'inputImage.jpg')
-
+    const sendImageToServer = async (uri: string) => {
+      setActIndVisible(true);
+    
       try {
-        const axiosResponse = await axios.post('http://127.0.0.1:5000', formData);
-        console.log(axiosResponse.data); //check
+        const formData = new FormData();
+    
+        const response = await fetch(uri);
+        const blob = await response.blob();
+    
+        const file = new File([blob], 'inputImage.jpg', { type: 'image/jpeg' });
+    
+        formData.append('image', file);
+    
+        console.log('Sending request to server...');
+        const axiosResponse = await axios.post('https://webhook.site/115b24b7-829f-49d9-8817-0a3ae89ec729', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          }
+        })
+    
+        console.log('Response from server:', axiosResponse.data);
+    
+        setReceivedConfidenceScores(axiosResponse.data);
+        setActIndVisible(false);
+        setOutputVisible(true);
       } catch (error) {
         console.log('Error uploading image:', error);
         Alert.alert(
           'Failed to send image to server.',
-          'Solutions: \n1. Check if the server link is written correctly \n2. Check your internet connection'
+          'Solutions: \n1. Check if the server link is correct \n2. Check your internet connection'
         );
+        setActIndVisible(false);
       }
-      setActIndVisible(true)
-      fetchImageAndScores()
-    }
+    };
 
   const processReceivedData = async (confidenceScores: [any, any][]) => {
     //blob to confidence score array
@@ -77,20 +92,7 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     setReceivedConfidenceScores(convertedConfidenceScores)
   }
 
-  //wait for the server, then fetch the blob containing an image and array of confidence scores
-  const fetchImageAndScores = async () => {
-    try {
-      const axiosResponse = await axios.get('http://localhost:5000/upload');
-      const axiosConfidenceScores = axiosResponse.data.confidenceScores;
-      console.log(axiosConfidenceScores) //log confidence scores
-      processReceivedData(axiosConfidenceScores) //process the image and confidence scores
-      setActIndVisible(false)
-      setOutputVisible(true)
-    } catch (error) {
-      console.log('Fetching image and scores error: ',error)
-      setActIndVisible(false)
-    }
-  }
+
 
   const closeOutputModal = () => {
     setModalVisible(false)
