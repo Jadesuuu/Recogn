@@ -9,6 +9,7 @@
   import ActivityIndicator from './ActivityIndicator2'
   import * as ImagePicker from 'expo-image-picker';
   import * as ImageManipulator from 'expo-image-manipulator';
+  import useInputStore from './useInputStore'
 
   const CameraComponent = () => {
   
@@ -53,6 +54,8 @@
     }
 
     function toggleFlashMode() {
+      const {inputValue} = useInputStore()
+      console.log(inputValue)
       setFlashMode((prevMode) => prevMode === FlashMode.off ? FlashMode.torch : FlashMode.off
       )
     }

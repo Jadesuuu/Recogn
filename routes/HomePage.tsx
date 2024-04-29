@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { BottomNavigation, Text, useTheme, Drawer, Switch } from 'react-native-paper'
 import { View, StyleSheet } from 'react-native'
-import HistoryScreen from '../pages/History'
 import CameraScreen from '../components/CameraComponent'
 import { createDrawerNavigator } from '@react-navigation/drawer'
 import { NavigationContainer } from '@react-navigation/native'
@@ -9,9 +8,10 @@ import { lightTheme } from '../themes/lightTheme'
 import { darkTheme } from '../themes/darkTheme'
 import { Icon } from 'react-native-elements'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
+import Settings from '../components/Settings'
 
 const CameraRoute = () => <CameraScreen />
-const HistoryRoute = () => <HistoryScreen />
+const SettingsRoute = () => <Settings />
 const DrawerContent = ({ navigation }: { navigation: any }) => {
 
   const [isDarkTheme, setIsDarkTheme] = React.useState(false) 
@@ -26,7 +26,7 @@ const DrawerContent = ({ navigation }: { navigation: any }) => {
         <Drawer.Item
           label="About"
           active={active === 'first'}
-          onPress={() => setActive('first')} // open modal siguro
+          onPress={() => setActive('first')} 
           icon="help-box"
         />
         <Drawer.Item
@@ -36,12 +36,19 @@ const DrawerContent = ({ navigation }: { navigation: any }) => {
           icon="comment-question"
         />
       </Drawer.Section>
-      <Drawer.Section title="preferences">
+      <Drawer.Section title="Preferences">
         <View style={styles.preferences}>
           <Icon name="moon-waning-crescent" type="material-community" style={styles.icon} />
           <Text style={styles.text} >Night Mode</Text>
           <Switch value={isDarkTheme} onValueChange={toggleTheme} style={styles.switch} />
         </View>
+      </Drawer.Section>
+      <Drawer.Section title="Settings">
+        <Drawer.Item 
+          label='Host Address'
+          icon="cog"
+          onPress={() => navigation.navigate('Settings')}
+        />
       </Drawer.Section>
     </View>
   )
@@ -51,25 +58,25 @@ const App = () => {
   
   const [index, setIndex] = React.useState(0)
   const [routes] = React.useState([
+    { key: 'settings', title: 'Settings', 
+    focusedIcon: () => (
+      <MaterialCommunityIcons name='history' size={24} color="white" />
+    )},
     { key: 'camera', title: 'Camera', 
     focusedIcon: () => (
       <MaterialCommunityIcons name="camera" size={24} color="white" /> // White focused icon
     ),
     unfocusedIcon: () => (
       <MaterialCommunityIcons name="camera-off" size={24} color="white" /> // White unfocused icon
-    ), },
-    { key: 'history', title: 'History', 
-    focusedIcon: () => (
-      <MaterialCommunityIcons name='history' size={24} color="white" />
-    )}
+    ), }
   ])
 
   const renderScene = BottomNavigation.SceneMap({
-    camera: CameraRoute,
-    history: HistoryRoute,
+    settings: SettingsRoute,
+    camera: CameraRoute
   })
+  
   const DrawerNav = createDrawerNavigator();
-
   return (
     <NavigationContainer>
       <DrawerNav.Navigator drawerContent={(props) => <DrawerContent {...props} />} screenOptions={{

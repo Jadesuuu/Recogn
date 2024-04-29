@@ -11,7 +11,7 @@ import ActivityIndicator from './ActivityIndicator2'
 import OutputPage from './Output'
 import axios from 'axios'
 import * as FileSystem from 'expo-file-system'
-import { EvilIcons } from '@expo/vector-icons';
+import useInputStore from './useInputStore';
 
 interface SendToServerProps {
     uri: string
@@ -27,6 +27,7 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     const [actIndVisible, setActIndVisible] = useState(false)
     const [outputVisible, setOutputVisible] = useState(false)
     const [receivedConfidenceScores, setReceivedConfidenceScores] = useState<ConfidenceScore[]>()
+    const {inputValue} = useInputStore()
 
     //call back function for closing the modal. 
     const handleFinish = () => {
@@ -46,20 +47,19 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     
     const sendImageToServer = async (uri: string) => {
       setActIndVisible(true);
-    
+      console.log(inputValue)
       try {
         const base64Data = await FileSystem.readAsStringAsync(uri, {
           encoding: 'base64'
         })
 
-        const axiosResponse = await axios.post('http://192.168.1.56:5000/predict', base64Data, {
+        const axiosResponse = await axios.post(inputValue, base64Data, {
           headers: {
             'Content-Type': 'image/jpeg'
           }
         })
     
         console.log('Response from server:', axiosResponse.data);
-    
         setReceivedConfidenceScores(axiosResponse.data);
         setActIndVisible(false);
         setOutputVisible(true);
@@ -99,7 +99,7 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
             <View style={styles.imageContainer}>
             <IconButton icon={'close'} onPress={closeOutputModal} style={styles.modalClose} iconColor='white'></IconButton>
               {uri && 
-              <Image source={{ uri }} style={styles.image} />
+              <Image source={{ uri }} style={styles.image} resizeMode='contain'/>
               }
             <Button onPress={handleConfirmButton} mode='elevated' buttonColor='#006400' textColor='white' style={styles.confirmButton}>Confirm</Button>
             </View>

@@ -51,7 +51,7 @@ const OutputPage: React.FC<OutputPageProps> = ({ outputData, uri }) => {
             <View style={styles.imageContainer}>
             <IconButton icon={'close'} onPress={closeOutputModal} style={styles.modalClose} iconColor='white'></IconButton>
               {uri && 
-              <Image source={{ uri }} style={styles.image} />
+              <Image source={{ uri }} style={styles.image} resizeMode='center'/>
               }
             </View>
           </View>
@@ -68,6 +68,7 @@ const OutputPage: React.FC<OutputPageProps> = ({ outputData, uri }) => {
     </View>
   )
 }
+
 
 const styles = StyleSheet.create({
   modalContainer: {
