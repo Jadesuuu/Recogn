@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native'
+import { IconButton } from 'react-native-paper'
 
 interface OutputPageProps {
   outputData: any
@@ -45,9 +46,10 @@ const OutputPage: React.FC<OutputPageProps> = ({ outputData, uri }) => {
         onRequestClose={closeOutputModal}
         onDismiss={closeOutputModal}
       >
-        <View style={{ height: '65%', marginTop: 'auto', backgroundColor: '#F5F5F5', borderRadius: 35 }}>
+        <View style={{ height: '69%', marginTop: 'auto', backgroundColor: '#404040', borderRadius: 35 }}>
           <View>
             <View style={styles.imageContainer}>
+            <IconButton icon={'close'} onPress={closeOutputModal} style={styles.modalClose} iconColor='white'></IconButton>
               {uri && 
               <Image source={{ uri }} style={styles.image} />
               }
@@ -101,13 +103,13 @@ const styles = StyleSheet.create({
   predictionText: {
     fontSize: 18,
     marginBottom: 5,
-    color: 'gray',
+    color: '#A0A0A0',
     textAlign: 'center',
   },
   predictionTextBold: {
     fontSize: 28,
     marginBottom: 5,
-    color: 'black',
+    color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -120,7 +122,10 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1.5,
-    backgroundColor: '#F0F0F0'
+    backgroundColor: '#606060'
+  }, 
+  modalClose: {
+    marginLeft: 330
   }
 })
 

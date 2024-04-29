@@ -8,6 +8,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import { lightTheme } from '../themes/lightTheme'
 import { darkTheme } from '../themes/darkTheme'
 import { Icon } from 'react-native-elements'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 const CameraRoute = () => <CameraScreen />
 const HistoryRoute = () => <HistoryScreen />
@@ -50,8 +51,17 @@ const App = () => {
   
   const [index, setIndex] = React.useState(0)
   const [routes] = React.useState([
-    { key: 'camera', title: 'Camera', focusedIcon: 'camera', unfocusedIcon: 'camera-off' },
-    { key: 'history', title: 'History', focusedIcon: 'history' }
+    { key: 'camera', title: 'Camera', 
+    focusedIcon: () => (
+      <MaterialCommunityIcons name="camera" size={24} color="white" /> // White focused icon
+    ),
+    unfocusedIcon: () => (
+      <MaterialCommunityIcons name="camera-off" size={24} color="white" /> // White unfocused icon
+    ), },
+    { key: 'history', title: 'History', 
+    focusedIcon: () => (
+      <MaterialCommunityIcons name='history' size={24} color="white" />
+    )}
   ])
 
   const renderScene = BottomNavigation.SceneMap({
@@ -62,7 +72,13 @@ const App = () => {
 
   return (
     <NavigationContainer>
-      <DrawerNav.Navigator drawerContent={(props) => <DrawerContent {...props} />}>
+      <DrawerNav.Navigator drawerContent={(props) => <DrawerContent {...props} />} screenOptions={{
+        overlayColor: '#404040',
+        headerTintColor: 'black',
+        sceneContainerStyle: {
+          backgroundColor: 'red'
+        }
+      }}>
         <DrawerNav.Screen name="Recogn">
           {() => (
             <View style={styles.container}>
@@ -70,8 +86,10 @@ const App = () => {
                 navigationState={{ index, routes }}
                 onIndexChange={setIndex}
                 renderScene={renderScene}
-                barStyle={{backgroundColor: '#F5F5F5'}}
+                barStyle={{backgroundColor: '#404040'}}
                 theme={{colors: {secondaryContainer: '#006400'}}}
+                activeColor='white'
+                inactiveColor='white'
               />
             </View>
           )}

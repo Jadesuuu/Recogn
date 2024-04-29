@@ -57,20 +57,6 @@
       )
     }
 
-    // const calculateCropDimensions = (imageWidth: number, imageHeight: number) => {
-    //   const originalRatio = imageWidth / imageHeight;
-    //   const desiredRatio = 4 / 3;
-    
-    //   const cropWidth = imageHeight * desiredRatio;
-    
-    //   if (originalRatio > desiredRatio) {
-    //     const cropHeight = imageWidth / desiredRatio;
-    //     return { width: cropWidth, height: cropHeight };
-    //   } else {
-    //     return { width: cropWidth, height: imageHeight };
-    //   }
-    // };
-    
     const captureAndSaveImage = async () => {
       if (cameraRef.current) {
         try {
@@ -91,10 +77,8 @@
             [
               {
                 crop: {
-                  // Calculate crop dimensions based on the original image's aspect ratio
                   width: data.width,
                   height: (data.width * 3) / 4,
-                  // Center the crop
                   originX: originX,
                   originY: originY
                 }
@@ -136,7 +120,7 @@
 
     return (
       <>
-        <Camera ref={cameraRef} style={{width, height, paddingBottom: 130}} ratio='16:9' type={type} flashMode={flashMode} autoFocus={true}>
+        <Camera ref={cameraRef} style={{width, height, paddingBottom: 130}} ratio='16:9' type={type} flashMode={flashMode} autoFocus={true} >
           <View style={styles.rectangleContainer}>
             <Overlay /> 
             <IconButton onPress={captureAndSaveImage} icon='circle-slice-8' style={styles.shutterButton} iconColor='white' size={80} />

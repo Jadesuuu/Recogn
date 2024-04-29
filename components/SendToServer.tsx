@@ -6,12 +6,12 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native'
-import { Button } from 'react-native-paper'
+import { Button, Icon, IconButton } from 'react-native-paper'
 import ActivityIndicator from './ActivityIndicator2'
 import OutputPage from './Output'
-import { Platform } from 'react-native'
 import axios from 'axios'
 import * as FileSystem from 'expo-file-system'
+import { EvilIcons } from '@expo/vector-icons';
 
 interface SendToServerProps {
     uri: string
@@ -38,7 +38,6 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
 
       const handleConfirmButton = async () => {
         if (uri) {
-
           await sendImageToServer(uri)
         } else {
           console.warn('Missing Captured image URI')
@@ -53,7 +52,7 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
           encoding: 'base64'
         })
 
-        const axiosResponse = await axios.post('https://webhook.site/546d31a3-15d4-4ac1-ae67-74e5a8c08fb2', 'data:image/jpeg;base64,' + base64Data, {
+        const axiosResponse = await axios.post('http://192.168.1.56:5000/predict', base64Data, {
           headers: {
             'Content-Type': 'image/jpeg'
           }
@@ -73,21 +72,6 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
         setActIndVisible(false);
       }
     };
-
-  const processReceivedData = async (confidenceScores: [any, any][]) => {
-    //blob to confidence score array
-    const convertedConfidenceScores: ((prevState: never[]) => never[]) | { label: any; score: any }[] = []
-    console.log('Confidence scores:')
-
-    //set the state for the new confidence score data
-    confidenceScores.forEach(([label, score]) => {
-      console.log(`${label}: ${score}`)
-      convertedConfidenceScores.push({label, score})
-    })
-    setReceivedConfidenceScores(convertedConfidenceScores)
-  }
-
-
 
   const closeOutputModal = () => {
     setModalVisible(false)
@@ -111,13 +95,13 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
         onRequestClose={closeOutputModal}
         onDismiss={closeOutputModal}
       >
-        <View style={{ height: '65%', marginTop: 'auto', backgroundColor: '#F5F5F5', borderRadius: 35 }}>
+        <View style={{ height: '65%', marginTop: 'auto', backgroundColor: '#404040', borderRadius: 35 }}>
             <View style={styles.imageContainer}>
+            <IconButton icon={'close'} onPress={closeOutputModal} style={styles.modalClose} iconColor='white'></IconButton>
               {uri && 
               <Image source={{ uri }} style={styles.image} />
               }
-            <Button onPress={closeOutputModal}>Retake</Button>
-            <Button onPress={handleConfirmButton}>Confirm</Button>
+            <Button onPress={handleConfirmButton} mode='elevated' buttonColor='#006400' textColor='white' style={styles.confirmButton}>Confirm</Button>
             </View>
         </View>
       </Modal>
@@ -184,6 +168,14 @@ const styles = StyleSheet.create({
   divider: {
     height: 1.5,
     backgroundColor: '#F0F0F0'
+  },
+  modalClose: {
+    marginLeft: 330
+  }, 
+  confirmButton: {
+    width: '80%',
+    height: 40, 
+    borderRadius: 10,
   }
 })
 
