@@ -101,7 +101,7 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
               {uri && 
               <Image source={{ uri }} style={styles.image} resizeMode='contain'/>
               }
-            <Button onPress={handleConfirmButton} mode='elevated' buttonColor='#006400' textColor='white' style={styles.confirmButton}>Confirm</Button>
+            <Button onPress={handleConfirmButton} mode='elevated' buttonColor='#006400' textColor='white' style={styles.confirmButton}>Send</Button>
             </View>
         </View>
       </Modal>
