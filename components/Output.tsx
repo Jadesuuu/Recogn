@@ -20,12 +20,11 @@ const OutputPage: React.FC<OutputPageProps> = ({ outputData, uri }) => {
   const [modalVisible, setModalVisible] = useState(true)
 
   useEffect(() => {
-
     const sortedPredictions = outputData.slice().sort((a: number[], b: number[]) => b[1] - a[1])
     const formattedPredictions = sortedPredictions
       .slice(0, 3)
       .map((prediction: number[]) => {
-        const confidence = (prediction[1] * 100).toFixed(0)
+        const confidence = (prediction[1] * 100).toFixed(2)
         return `${prediction[0]} ${confidence}%`
       })
 

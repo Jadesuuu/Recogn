@@ -9,15 +9,13 @@
   import ActivityIndicator from './ActivityIndicator2'
   import * as ImagePicker from 'expo-image-picker';
   import * as ImageManipulator from 'expo-image-manipulator';
-  import useInputStore from './useInputStore'
 
   const CameraComponent = () => {
-  
+    const [flashMode, setFlashMode] = useState(FlashMode.off)  
     const [type, setType] = useState(CameraType.back)
     const [permission, requestPermission] = Camera.useCameraPermissions()
     const [isCaptured, setIsCaptured] = useState(false)
     const [imageUri, setImageUri] = useState('')
-    const [flashMode, setFlashMode] = useState(FlashMode.off)  
     const [permissionResponse, requestPermissionAsync] = MediaLibrary.usePermissions() 
     const [visible, setVisible] = useState(false); 
     const cameraRef = useRef<Camera>(null)
@@ -53,12 +51,6 @@
       setType(current => (current === CameraType.back ? CameraType.front : CameraType.back))
     }
 
-    function toggleFlashMode() {
-      const {inputValue} = useInputStore()
-      console.log(inputValue)
-      setFlashMode((prevMode) => prevMode === FlashMode.off ? FlashMode.torch : FlashMode.off
-      )
-    }
 
     const captureAndSaveImage = async () => {
       if (cameraRef.current) {
@@ -120,6 +112,11 @@
       setImageUri(result.assets[0].uri)
     }
   };
+  function toggleFlashMode() {
+      
+    setFlashMode((prevMode) => prevMode === FlashMode.off ? FlashMode.torch : FlashMode.off
+    )
+  }
 
     return (
       <>

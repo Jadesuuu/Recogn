@@ -11,7 +11,8 @@ import ActivityIndicator from './ActivityIndicator2'
 import OutputPage from './Output'
 import axios from 'axios'
 import * as FileSystem from 'expo-file-system'
-import useInputStore from './useInputStore';
+import useInputStore from './useInputStore'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 interface SendToServerProps {
     uri: string
@@ -29,6 +30,22 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
     const [receivedConfidenceScores, setReceivedConfidenceScores] = useState<ConfidenceScore[]>()
     const {inputValue} = useInputStore()
 
+    const retrieveHostAddress = async () => {
+      try {
+        const value = await AsyncStorage.getItem('@hostAddress')
+        if (value !== null) {
+          console.log('Retrieved host address from AsyncStorage:', value)
+          return value
+        } else {
+          console.warn('No host address found in AsyncStorage.');
+          return ''
+        }
+      } catch (error) {
+        console.error('Error retrieving host address:', error)
+        return ''
+      }
+    };
+
     //call back function for closing the modal. 
     const handleFinish = () => {
         
@@ -37,29 +54,34 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
         }
       };
 
-      const handleConfirmButton = async () => {
-        if (uri) {
-          await sendImageToServer(uri)
-        } else {
-          console.warn('Missing Captured image URI')
-        }
+       const handleConfirmButton = async () => {
+    if (uri) {
+      const hostAddress = await retrieveHostAddress();
+      if (hostAddress) {
+        await sendImageToServer(uri, hostAddress);
+      } else {
+        console.warn('Missing host address. Please set it in Settings.');
       }
+    } else {
+      console.warn('Missing Captured image URI');
+    }
+  };
     
-    const sendImageToServer = async (uri: string) => {
+    const sendImageToServer = async (uri: string, hostAddress: string) => {
       setActIndVisible(true);
-      console.log(inputValue)
+      console.log("Sending to host: " + hostAddress)
       try {
         const base64Data = await FileSystem.readAsStringAsync(uri, {
           encoding: 'base64'
         })
-
-        const axiosResponse = await axios.post(inputValue, base64Data, {
+        const hostUrl = `http://${hostAddress}:5000/predict`
+        const axiosResponse = await axios.post(hostUrl, base64Data, {
           headers: {
             'Content-Type': 'image/jpeg'
           }
         })
     
-        console.log('Response from server:', axiosResponse.data);
+        
         setReceivedConfidenceScores(axiosResponse.data);
         setActIndVisible(false);
         setOutputVisible(true);
@@ -80,9 +102,9 @@ const SendToServer: React.FC<SendToServerProps> = ({  uri, onFinish }) => {
 
   //for testing
   const sampleConfidenceScores = [
-    ['Camera', '0.88'],
-    ['Eye', '0.11'],
-    ['Box', '0.01'],
+    ['Camera', '0.998989'],
+    ['Eye', '0.000000121'],
+    ['Box', '0.00'],
   ];
 
   return (
@@ -140,8 +162,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   image: {
-    width: 370,
-    height: 370,
+    width: 360,
+    height: 320,
     resizeMode: 'contain',
     borderRadius: 35,
   },
